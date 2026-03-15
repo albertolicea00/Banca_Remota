@@ -1,0 +1,289 @@
+{
+  "banks": [
+    {
+      "id": "bpa",
+      "name": "Popular Bank of Savings",
+      "shortName": "bpa",
+      "themeColorHex": "1E5F52",
+      "categories": []
+    },
+    {
+      "id": "bandec",
+      "name": "Credit and Commerce Bank",
+      "shortName": "bandec",
+      "themeColorHex": "5B2A1F",
+      "categories": []
+    },
+    {
+      "id": "bm",
+      "name": "Metropolitan Bank",
+      "shortName": "bm",
+      "themeColorHex": "81D717",
+      "categories": [
+        {
+          "name": "SESSION",
+          "operations": [
+            {
+              "id": "op_40",
+              "name": "Bank Authentication",
+              "description": "Access the banking system",
+              "iconName": "number.square",
+              "ussdCode": "*444*40#"
+            },
+            {
+              "id": "op_70",
+              "name": "Logout",
+              "description": "Close system session",
+              "iconName": "arrow.right.square",
+              "ussdCode": "*444*70#"
+            },
+            {
+              "id": "op_79",
+              "name": "Digital Pin",
+              "description": "Bank digital pin service",
+              "iconName": "puzzlepiece",
+              "ussdCode": "*444*79#"
+            },
+            {
+              "id": "op_49",
+              "name": "Sign Up",
+              "description": "Register in the system",
+              "iconName": "person.crop.circle.badge.plus",
+              "ussdCode": "*444*49#"
+            },
+            {
+              "id": "op_68",
+              "name": "Remove Registration",
+              "description": "Delete associated registration",
+              "iconName": "person.crop.circle.badge.minus",
+              "ussdCode": "*444*68#"
+            },
+            {
+              "id": "op_60",
+              "name": "Link Card to Telebanca",
+              "description": "Link card to Telebanca services",
+              "iconName": "creditcard",
+              "ussdCode": "*444*60#"
+            }
+          ]
+        },
+        {
+          "name": "QUERIES",
+          "operations": [
+            {
+              "id": "op_62",
+              "name": "Check Card Limits",
+              "description": "Consult card transaction limits",
+              "iconName": "dollarsign.circle",
+              "ussdCode": "*444*62#"
+            },
+            {
+              "id": "op_58",
+              "name": "Check All Accounts",
+              "description": "View account summary",
+              "iconName": "list.bullet.rectangle",
+              "ussdCode": "*444*58#"
+            },
+            {
+              "id": "op_56",
+              "name": "Query ONAT Bank",
+              "description": "Query ONAT tax status",
+              "iconName": "doc.text.magnifyingglass",
+              "ussdCode": "*444*56#"
+            },
+            {
+              "id": "op_57",
+              "name": "Query Annual ONAT",
+              "description": "Query annual ONAT tax status",
+              "iconName": "doc.plaintext",
+              "ussdCode": "*444*57#"
+            },
+            {
+              "id": "op_65",
+              "name": "Query Money Order",
+              "description": "Check postal money orders",
+              "iconName": "envelope.badge.magnifyingglass",
+              "ussdCode": "*444*65#"
+            },
+            {
+              "id": "op_73",
+              "name": "Locate Transfer",
+              "description": "Search previous transfers",
+              "iconName": "location.magnifyingglass",
+              "ussdCode": "*444*73#"
+            },
+            {
+              "id": "op_72",
+              "name": "Query Credits",
+              "description": "Consult associated credits",
+              "iconName": "creditcard.circle",
+              "ussdCode": "*444*72#"
+            },
+            {
+              "id": "op_46",
+              "name": "Check Card Balance",
+              "description": "View current balance",
+              "iconName": "list.bullet.rectangle.portrait",
+              "ussdCode": "*444*46#"
+            },
+            {
+              "id": "op_48",
+              "name": "Last Operations",
+              "description": "History of latest operations",
+              "iconName": "clock.arrow.circlepath",
+              "ussdCode": "*444*48#"
+            },
+            {
+              "id": "op_47",
+              "name": "Query Bank Services",
+              "description": "List of offered services",
+              "iconName": "list.bullet.clipboard",
+              "ussdCode": "*444*47#"
+            }
+          ]
+        },
+        {
+          "name": "PAYMENTS & RECHARGES",
+          "operations": [
+            {
+              "id": "op_54",
+              "name": "Mobile Recharge",
+              "description": "Recharge mobile balance",
+              "iconName": "candybarphone",
+              "ussdCode": "*444*54#"
+            },
+            {
+              "id": "op_59",
+              "name": "Nauta Recharge",
+              "description": "Recharge Nauta account",
+              "iconName": "wifi",
+              "ussdCode": "*444*59#"
+            },
+            {
+              "id": "op_77",
+              "name": "Own Recharge",
+              "description": "Recharge own mobile number",
+              "iconName": "plus.circle",
+              "ussdCode": "*444*77#"
+            },
+            {
+              "id": "op_67",
+              "name": "Pay Gas",
+              "description": "Pay gas bill",
+              "iconName": "flame",
+              "ussdCode": "*444*67#"
+            },
+            {
+              "id": "op_41",
+              "name": "Pay Electricity",
+              "description": "Pay electric bill",
+              "iconName": "bolt",
+              "ussdCode": "*444*41#"
+            },
+            {
+              "id": "op_42",
+              "name": "Pay Telephone",
+              "description": "Pay telephone bill",
+              "iconName": "phone",
+              "ussdCode": "*444*42#"
+            },
+            {
+              "id": "op_43",
+              "name": "Pay ONAT tax",
+              "description": "Payments to ONAT",
+              "iconName": "doc.text",
+              "ussdCode": "*444*43#"
+            },
+            {
+              "id": "op_44",
+              "name": "Pay Fine",
+              "description": "Pay fines",
+              "iconName": "ticket",
+              "ussdCode": "*444*44#"
+            },
+            {
+              "id": "op_51",
+              "name": "Pay Havana Water",
+              "description": "Pay water utility service",
+              "iconName": "drop",
+              "ussdCode": "*444*51#"
+            },
+            {
+              "id": "op_30",
+              "name": "Custom Service Payment",
+              "description": "Pay an external specific service",
+              "iconName": "cube.box",
+              "ussdCode": "*444*30#"
+            }
+          ]
+        },
+        {
+          "name": "TRANSFERS",
+          "operations": [
+            {
+              "id": "op_45",
+              "name": "Bank Transfer",
+              "description": "Transfer funds to another card",
+              "iconName": "arrow.left.arrow.right.square",
+              "ussdCode": "*444*45#"
+            },
+            {
+              "id": "op_64",
+              "name": "Money Order",
+              "description": "Issue a postal money order",
+              "iconName": "envelope",
+              "ussdCode": "*444*64#"
+            }
+          ]
+        },
+        {
+          "name": "CARD & SETTINGS",
+          "operations": [
+            {
+              "id": "op_53",
+              "name": "Update Bank Accounts",
+              "description": "Update subscription details",
+              "iconName": "arrow.triangle.2.circlepath",
+              "ussdCode": "*444*53#"
+            },
+            {
+              "id": "op_61",
+              "name": "Change Card Limit",
+              "description": "Modify transaction limits",
+              "iconName": "lock.rotation",
+              "ussdCode": "*444*61#"
+            },
+            {
+              "id": "op_74",
+              "name": "Reprint Card",
+              "description": "Manage card reprinting",
+              "iconName": "creditcard.and.123",
+              "ussdCode": "*444*74#"
+            },
+            {
+              "id": "op_69",
+              "name": "Change Bank PIN",
+              "description": "Modify access PIN",
+              "iconName": "lock",
+              "ussdCode": "*444*69#"
+            },
+            {
+              "id": "op_50",
+              "name": "Telebanca Card Request",
+              "description": "Request new master card",
+              "iconName": "creditcard.circle.fill",
+              "ussdCode": "*444*50#"
+            },
+            {
+              "id": "op_71",
+              "name": "Bank Help",
+              "description": "Help information about operations",
+              "iconName": "questionmark.circle",
+              "ussdCode": "*444*71#"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
