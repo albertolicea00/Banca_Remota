@@ -188,7 +188,7 @@ struct SideMenuView: View {
                 
                 // Link Items
                 VStack(alignment: .leading, spacing: 25) {
-                    MenuRow(iconColor: Color(hex: "B38B4D"), title: "Home", isSelected: selectedBank == nil) {
+                    MenuRow(iconColor: Color(hex: "B38B4D"), title: "Inicio", isSelected: selectedBank == nil) {
                         onSelectHome()
                     }
                     
@@ -200,8 +200,8 @@ struct SideMenuView: View {
                     
                     Divider().padding(.trailing, 40)
                     
-                    MenuRow(iconColor: Color(hex: "B38B4D"), title: "Exchange Rate", isSelected: false) {}
-                    MenuRow(iconColor: Color(hex: "B38B4D"), title: "Bank Contacts", isSelected: false) {}
+                    MenuRow(iconColor: Color(hex: "B38B4D"), title: "Tasa de cambio", isSelected: false) {}
+                    MenuRow(iconColor: Color(hex: "B38B4D"), title: "Contactos bancarios", isSelected: false) {}
                 }
                 .padding(.leading, 30)
                 

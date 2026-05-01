@@ -85,7 +85,7 @@ struct OperationCard: View {
                     
                     Image(systemName: operation.iconName)
                         .font(.system(size: 20))
-                        .foregroundColor(.black)
+                        .foregroundColor(.white)
                 }
             }
             .padding()
