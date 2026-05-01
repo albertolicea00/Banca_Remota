@@ -183,7 +183,7 @@ struct SideMenuView: View {
                 // Link Items
                 VStack(alignment: .leading, spacing: 25) {
                     ForEach(banks) { bank in
-                        MenuRow(iconColor: bank.themeColor, imageName: bank.logoName, title: bank.shortName.uppercased(), isSelected: selectedBank?.id == bank.id) {
+                        MenuRow(iconColor: bank.themeColor, imageName: bank.logoName, systemImageName: nil, title: bank.shortName.uppercased(), isSelected: selectedBank?.id == bank.id) {
                             onSelectBank(bank)
                         }
                     }
@@ -193,7 +193,7 @@ struct SideMenuView: View {
                     // MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, title: "Contactos del Banco", isSelected: false) {}
                     
                     Divider().padding(.trailing, 40)
-                    MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, title: "Ayuda", isSelected: false) {
+                    MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, systemImageName: "info.circle", title: "Información", isSelected: false) {
                         onSelectHelp()
                     }
 
@@ -319,6 +319,7 @@ struct HelpSection: View {
 struct MenuRow: View {
     let iconColor: Color
     let imageName: String?
+    let systemImageName: String?
     let title: String
     let isSelected: Bool
     let action: () -> Void
@@ -332,6 +333,11 @@ struct MenuRow: View {
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 30, height: 30)
                         .cornerRadius(6)
+                } else if let systemName = systemImageName {
+                    Image(systemName: systemName)
+                        .font(.system(size: 20))
+                        .foregroundColor(iconColor)
+                        .frame(width: 30, height: 30)
                 } else {
                     Circle()
                         .fill(iconColor)
