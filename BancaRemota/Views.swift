@@ -75,11 +75,6 @@ struct BankSelectionView: View {
         VStack(spacing: 0) {
             TopNavBar(themeColor: .white, onMenuTap: onMenuTap)
             
-            Text("Banca Remota")
-                .font(.system(size: 20, weight: .regular))
-                .foregroundColor(Color(hex: "B38B4D"))
-                .padding(.vertical, 10)
-            
             ScrollView {
                 VStack(spacing: 20) {
                     ForEach(banks) { bank in
@@ -159,37 +154,22 @@ struct SideMenuView: View {
             Color.white.ignoresSafeArea()
             
             VStack(alignment: .leading, spacing: 30) {
-                // Branding Logo
-                ZStack {
-                    Circle()
-                        .fill(Color.white)
-                        .frame(width: 60, height: 60)
-                        .shadow(radius: 2)
-                    
-                    VStack(spacing: 0) {
-                        Text("BR")
-                            .font(.system(size: 24, weight: .bold, design: .serif))
-                            .foregroundColor(Color(hex: "B38B4D"))
-                        
-                        HStack(spacing: 0) {
-                            Rectangle().fill(Color.black).frame(width: 10, height: 3)
-                            Rectangle().fill(Color.red).frame(width: 10, height: 3)
-                            Rectangle().fill(Color.blue).frame(width: 10, height: 3)
-                        }
-                        .padding(.top, 2)
-                    }
+                // Branding Image
+                Button(action: onSelectHome) {
+                    Image("branding_logo")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(maxWidth: .infinity)
+                        .padding(.horizontal, 20)
                 }
-                .padding(.top, 50)
-                .padding(.leading, 30)
+                .buttonStyle(PlainButtonStyle())
+                .padding(.top, 40)
+                .padding(.bottom, 10)
                 
                 Divider().padding(.trailing, 40)
                                 
                 // Link Items
                 VStack(alignment: .leading, spacing: 25) {
-                    MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, title: "Inicio", isSelected: selectedBank == nil) {
-                        onSelectHome()
-                    }
-                    
                     ForEach(banks) { bank in
                         MenuRow(iconColor: bank.themeColor, imageName: bank.logoName, title: bank.shortName.uppercased(), isSelected: selectedBank?.id == bank.id) {
                             onSelectBank(bank)
@@ -209,6 +189,14 @@ struct SideMenuView: View {
                 Spacer()
             }
         }
+        .gesture(
+            DragGesture()
+                .onEnded { value in
+                    if value.translation.width < -50 {
+                        onSelectHome()
+                    }
+                }
+        )
     }
 }
 
