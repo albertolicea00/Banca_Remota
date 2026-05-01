@@ -1,6 +1,6 @@
-# Remote Banking - Cuba
+# Banca Remota - Cuba
 
-Remote Banking is a native iOS application written in SwiftUI to automate USSD (Telebanca) calls and codes for the main banks in Cuba:
+Banca Remota is a native iOS application written in SwiftUI to automate USSD (Telebanca) calls and codes for the main banks in Cuba:
 
 - **BPA** (Banco Popular de Ahorro)
 - **BANDEC** (Banco de Crédito y Comercio)

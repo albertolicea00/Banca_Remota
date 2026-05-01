@@ -103,8 +103,8 @@
 			);
 			dependencies = (
 			);
-			name = Banca_Remota;
-			productName = Banca_Remota;
+			name = "Banca Remota";
+			productName = "Banca Remota";
 			productReference = D5A535BF9225C8F2840D0C42 /* Banca_Remota.app */;
 			productType = "com.apple.product-type.application";
 		};
@@ -308,7 +308,8 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.bancaremota.app;
-				PRODUCT_NAME = Banca_Remota;
+				PRODUCT_NAME = "Banca Remota";
+				INFOPLIST_KEY_CFBundleDisplayName = "Banca Remota";
 				GENERATE_INFOPLIST_FILE = YES;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
@@ -336,7 +337,8 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.bancaremota.app;
-				PRODUCT_NAME = Banca_Remota;
+				PRODUCT_NAME = "Banca Remota";
+				INFOPLIST_KEY_CFBundleDisplayName = "Banca Remota";
 				GENERATE_INFOPLIST_FILE = YES;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;

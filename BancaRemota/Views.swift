@@ -75,7 +75,7 @@ struct BankSelectionView: View {
         VStack(spacing: 0) {
             TopNavBar(themeColor: .white, onMenuTap: onMenuTap)
             
-            Text("Remote Banking")
+            Text("Banca Remota")
                 .font(.system(size: 20, weight: .regular))
                 .foregroundColor(Color(hex: "B38B4D"))
                 .padding(.vertical, 10)

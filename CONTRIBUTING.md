@@ -1,6 +1,6 @@
-# Contributing to Remote Banking
+# Contributing to Banca Remota
 
-First off, thank you for considering contributing to Remote Banking! It's people like you that make this app better for everyone in Cuba.
+First off, thank you for considering contributing to Banca Remota! It's people like you that make this app better for everyone in Cuba.
 
 ## How to Contribute
 
