@@ -3,7 +3,8 @@
     {
       "id": "bpa",
       "name": "Banco Popular de Ahorro",
-      "shortName": "bpa",
+      "shortName": "BPA",
+      "logoName": "bpa_m",
       "themeColorHex": "1E5F52",
       "categories": [
         {
@@ -274,7 +275,8 @@
     {
       "id": "bandec",
       "name": "Banco de Crédito y Comercio",
-      "shortName": "bandec",
+      "shortName": "BANDEC",
+      "logoName": "bandec_m",
       "themeColorHex": "5B2A1F",
       "categories": [
         {
@@ -545,7 +547,8 @@
     {
       "id": "bm",
       "name": "Banco Metropolitano",
-      "shortName": "bm",
+      "shortName": "BM",
+      "logoName": "bm_m",
       "themeColorHex": "81D717",
       "categories": [
         {

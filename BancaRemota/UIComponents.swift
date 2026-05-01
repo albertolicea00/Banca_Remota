@@ -120,16 +120,11 @@ struct BankSelectionCard: View {
                     Color.white
                     
                     // Logo representation
-                    ZStack {
-                        Circle()
-                            .fill(bank.themeColor)
-                            .frame(width: 60, height: 60)
-                        
-                        Text(bank.shortName)
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(.white) // Typically banks have specific logos. Using text for now.
-                    }
-                    .padding(.vertical, 20)
+                    Image(bank.logoName)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 80, height: 80)
+                        .padding(.vertical, 10)
                 }
             }
             .cornerRadius(16)

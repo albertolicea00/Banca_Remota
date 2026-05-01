@@ -111,14 +111,10 @@ struct OperationsListView: View {
                     ZStack {
                         Color.white
                         VStack {
-                            ZStack {
-                                Circle()
-                                    .fill(bank.themeColor)
+                                Image(bank.logoName)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
                                     .frame(width: 60, height: 60)
-                                Text(bank.shortName.uppercased())
-                                    .font(.system(size: 30, weight: .bold))
-                                    .foregroundColor(.white)
-                            }
                             .padding(.top, 10)
                             .padding(.bottom, 20)
                         }
@@ -186,22 +182,27 @@ struct SideMenuView: View {
                 .padding(.top, 50)
                 .padding(.leading, 30)
                 
+                Divider().padding(.trailing, 40)
+                                
                 // Link Items
                 VStack(alignment: .leading, spacing: 25) {
-                    MenuRow(iconColor: Color(hex: "B38B4D"), title: "Inicio", isSelected: selectedBank == nil) {
+                    MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, title: "Inicio", isSelected: selectedBank == nil) {
                         onSelectHome()
                     }
                     
                     ForEach(banks) { bank in
-                        MenuRow(iconColor: bank.themeColor, title: bank.shortName.lowercased(), isSelected: selectedBank?.id == bank.id) {
+                        MenuRow(iconColor: bank.themeColor, imageName: bank.logoName, title: bank.shortName.uppercased(), isSelected: selectedBank?.id == bank.id) {
                             onSelectBank(bank)
                         }
                     }
                     
-                    Divider().padding(.trailing, 40)
+                    // Divider().padding(.trailing, 40)
+                    // MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, title: "Tasa de Cambio", isSelected: false) {}
+                    // MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, title: "Contactos del Banco", isSelected: false) {}
                     
-                    MenuRow(iconColor: Color(hex: "B38B4D"), title: "Tasa de cambio", isSelected: false) {}
-                    MenuRow(iconColor: Color(hex: "B38B4D"), title: "Contactos bancarios", isSelected: false) {}
+                    Divider().padding(.trailing, 40)
+                    MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, title: "Ayuda", isSelected: false) {}
+
                 }
                 .padding(.leading, 30)
                 
@@ -214,6 +215,7 @@ struct SideMenuView: View {
 // MARK: - Reusable Menu Item Component
 struct MenuRow: View {
     let iconColor: Color
+    let imageName: String?
     let title: String
     let isSelected: Bool
     let action: () -> Void
@@ -221,9 +223,17 @@ struct MenuRow: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 15) {
-                Circle()
-                    .fill(iconColor)
-                    .frame(width: 30, height: 30)
+                if let imageName = imageName {
+                    Image(imageName)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 30, height: 30)
+                        .cornerRadius(6)
+                } else {
+                    Circle()
+                        .fill(iconColor)
+                        .frame(width: 30, height: 30)
+                }
                 
                 Text(title)
                     .font(.system(size: 18))

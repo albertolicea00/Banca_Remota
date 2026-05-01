@@ -10,6 +10,7 @@ struct Bank: Codable, Identifiable {
     let id: String
     let name: String
     let shortName: String // E.g., "bpa", "bandec", "bm"
+    let logoName: String
     let themeColorHex: String
     let categories: [OperationCategory]
     
