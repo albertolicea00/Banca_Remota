@@ -177,8 +177,9 @@ struct MenuShortcutCard: View {
     }
 }
 
-// MARK: - Data Card (Copy to Clipboard)
+// MARK: - Data Card (Swipeable with Rounded Buttons)
 struct DataCard: View {
+    let id: UUID
     let title: String
     let subtitle: String?
     let value: String
@@ -187,20 +188,55 @@ struct DataCard: View {
     var onEdit: (() -> Void)? = nil
     var onDelete: (() -> Void)? = nil
     
+    @ObservedObject var userData = UserDataManager.shared
+    @State private var offset: CGFloat = 0
     @State private var showCopied = false
     
+    private var isSwiped: Bool {
+        userData.activeSwipeID == id
+    }
+    
     var body: some View {
-        Button(action: {
-            UIPasteboard.general.string = value
-            let generator = UIImpactFeedbackGenerator(style: .medium)
-            generator.impactOccurred()
-            withAnimation {
-                showCopied = true
+        ZStack {
+            // Background Actions (Rounded Buttons)
+            HStack(spacing: 12) {
+                Spacer()
+                
+                if let onEdit = onEdit {
+                    Button(action: {
+                        withAnimation(.spring()) { 
+                            offset = 0
+                            userData.activeSwipeID = nil
+                        }
+                        onEdit()
+                    }) {
+                        Image(systemName: "pencil")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(.white)
+                            .frame(width: 44, height: 44)
+                            .background(Circle().fill(Color.blue))
+                    }
+                }
+                
+                if let onDelete = onDelete {
+                    Button(action: {
+                        withAnimation(.spring()) { 
+                            offset = 0
+                            userData.activeSwipeID = nil
+                        }
+                        onDelete()
+                    }) {
+                        Image(systemName: "trash.fill")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(.white)
+                            .frame(width: 44, height: 44)
+                            .background(Circle().fill(Color.red))
+                    }
+                }
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                withAnimation { showCopied = false }
-            }
-        }) {
+            .padding(.horizontal, 10)
+            
+            // Foreground Card
             HStack(spacing: 16) {
                 ZStack {
                     Circle()
@@ -255,15 +291,61 @@ struct DataCard: View {
                     } label: {
                         Image(systemName: "ellipsis.circle.fill")
                             .font(.title3)
-                            .foregroundColor(.gray.opacity(0.6))
+                            .foregroundColor(.gray.opacity(0.4))
                     }
                 }
             }
             .padding()
             .background(Color(UIColor.secondarySystemBackground))
             .cornerRadius(16)
+            .offset(x: isSwiped ? -130 : (userData.activeSwipeID == id ? offset : 0))
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        if value.translation.width < 0 {
+                            offset = value.translation.width
+                            if userData.activeSwipeID != id {
+                                userData.activeSwipeID = id
+                            }
+                        }
+                    }
+                    .onEnded { value in
+                        withAnimation(.spring()) {
+                            if value.translation.width < -60 {
+                                offset = -130
+                                userData.activeSwipeID = id
+                            } else {
+                                offset = 0
+                                userData.activeSwipeID = nil
+                            }
+                        }
+                    }
+            )
+            .onTapGesture {
+                if isSwiped {
+                    withAnimation(.spring()) { 
+                        offset = 0
+                        userData.activeSwipeID = nil
+                    }
+                } else {
+                    UIPasteboard.general.string = value
+                    let generator = UIImpactFeedbackGenerator(style: .medium)
+                    generator.impactOccurred()
+                    withAnimation { showCopied = true }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        withAnimation { showCopied = false }
+                    }
+                }
+            }
+            .onChange(of: userData.activeSwipeID) { newValue in
+                if newValue != id && offset != 0 {
+                    withAnimation(.spring()) {
+                        offset = 0
+                    }
+                }
+            }
         }
-        .buttonStyle(PlainButtonStyle())
     }
 }
 

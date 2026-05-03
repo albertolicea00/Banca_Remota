@@ -127,6 +127,7 @@ class UserDataManager: ObservableObject {
     @Published var bankAccounts: [BankAccount] = [] { didSet { save() } }
     @Published var bills: [Bill] = [] { didSet { save() } }
     @Published var userKeys: [UserKey] = [] { didSet { save() } }
+    @Published var activeSwipeID: UUID? = nil
     
     private init() {
         load()

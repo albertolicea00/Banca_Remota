@@ -162,6 +162,36 @@ struct BankSelectionView: View {
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 30) {
+
+                    if showShortcutsInFavorites {
+                        VStack(alignment: .leading, spacing: 15) {
+                            Text("Atajos de Menú")
+                                .font(.headline)
+                                .foregroundColor(.secondary)
+                                .padding(.horizontal)
+                            
+                            ScrollViewReader { proxy in
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 20) {
+                                        MenuShortcutCard(iconName: "doc.text.fill", title: "Servicios", themeColor: .appPrimary) { onSelectScreen(.cuentasServicios) }.id(1)
+                                        MenuShortcutCard(iconName: "wifi", title: "Nauta", themeColor: .appPrimary) { onSelectScreen(.cuentasNauta) }.id(2)
+                                        MenuShortcutCard(iconName: "building.columns.fill", title: "Cuentas", themeColor: .appPrimary) { onSelectScreen(.cuentasBanco) }.id(3)
+                                        MenuShortcutCard(iconName: "key.fill", title: "Claves", themeColor: .appPrimary) { onSelectScreen(.misClaves) }.id(4)
+                                        MenuShortcutCard(iconName: "arrow.left.arrow.right", title: "Cambio", themeColor: .appPrimary) { onSelectScreen(.tasaCambio) }.id(5)
+                                    }
+                                    .padding(.horizontal)
+                                    .padding(.bottom, 10)
+                                }
+                                .onAppear {
+                                    DispatchQueue.main.async {
+                                        proxy.scrollTo(2, anchor: .center)
+                                    }
+                                }
+                            }
+                        }
+                        .padding(.top, showBanksInFavorites ? 0 : 20)
+                    }
+
                     if showBanksInFavorites {
                         VStack(alignment: .leading, spacing: 15) {
                             HStack(alignment: .bottom) {
@@ -192,34 +222,6 @@ struct BankSelectionView: View {
                             .padding(.horizontal)
                         }
                         .padding(.top, 20)
-                    }
-                    
-                    if showShortcutsInFavorites {
-                        VStack(alignment: .leading, spacing: 15) {
-                            Text("Atajos de Menú")
-                                .font(.headline)
-                                .foregroundColor(.secondary)
-                                .padding(.horizontal)
-                            
-                            ScrollViewReader { proxy in
-                                ScrollView(.horizontal, showsIndicators: false) {
-                                    HStack(spacing: 20) {
-                                        MenuShortcutCard(iconName: "wifi", title: "Nauta", themeColor: .appPrimary) { onSelectScreen(.cuentasNauta) }.id(2)
-                                        MenuShortcutCard(iconName: "building.columns.fill", title: "Cuentas", themeColor: .appPrimary) { onSelectScreen(.cuentasBanco) }.id(1)
-                                        MenuShortcutCard(iconName: "key.fill", title: "Claves", themeColor: .appPrimary) { onSelectScreen(.misClaves) }.id(3)
-                                        MenuShortcutCard(iconName: "arrow.left.arrow.right", title: "Cambio", themeColor: .appPrimary) { onSelectScreen(.tasaCambio) }.id(4)
-                                    }
-                                    .padding(.horizontal)
-                                    .padding(.bottom, 10)
-                                }
-                                .onAppear {
-                                    DispatchQueue.main.async {
-                                        proxy.scrollTo(2, anchor: .center)
-                                    }
-                                }
-                            }
-                        }
-                        .padding(.top, showBanksInFavorites ? 0 : 20)
                     }
                     
                     VStack(alignment: .leading, spacing: 15) {
@@ -867,6 +869,7 @@ struct NautaListView: View {
                             
                             ForEach(grouped[groupName] ?? []) { account in
                                 DataCard(
+                                    id: account.id,
                                     title: account.label,
                                     subtitle: account.type,
                                     value: account.account,
@@ -878,21 +881,6 @@ struct NautaListView: View {
                                         showingDeleteAlert = true
                                     }
                                 )
-                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                    Button(role: .destructive) {
-                                        accountToDelete = account
-                                        showingDeleteAlert = true
-                                    } label: {
-                                        Label("Eliminar", systemImage: "trash.fill")
-                                    }
-                                    
-                                    Button {
-                                        accountToEdit = account
-                                    } label: {
-                                        Label("Editar", systemImage: "pencil")
-                                    }
-                                    .tint(.blue)
-                                }
                                 .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                                 .listRowBackground(Color.clear)
                                 .listRowSeparator(.hidden)
@@ -942,57 +930,54 @@ struct BankAccountsListView: View {
     @State private var accountToEdit: BankAccount?
     @State private var accountToDelete: BankAccount?
     @State private var showingDeleteAlert = false
+    @State private var selectedAccountForDetail: BankAccount?
     
     var body: some View {
         VStack(spacing: 0) {
             TopNavBar(themeColor: .appPrimary, onMenuTap: onMenuTap, title: "Cuentas de Banco")
             
-            List {
+            ScrollView {
                 if userData.bankAccounts.isEmpty {
                     EmptyStateView(title: "Sin cuentas bancarias", message: "Guarda tus números de tarjeta y móviles aquí.", iconName: "building.columns")
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
+                        .padding(.top, 100)
                 } else {
                     let grouped = Dictionary(grouping: userData.bankAccounts, by: { $0.group.isEmpty ? "Mis Tarjetas" : $0.group })
                     
-                    ForEach(grouped.keys.sorted(), id: \.self) { groupName in
-                        Section(header: Text(groupName.uppercased())
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(.secondary)) {
-                            
-                            ForEach(grouped[groupName] ?? []) { account in
-                                VStack(alignment: .leading, spacing: 12) {
-                                    WalletCard(
-                                        account: account,
-                                        onEdit: { accountToEdit = account },
-                                        onDelete: { 
-                                            accountToDelete = account
-                                            showingDeleteAlert = true
-                                        }
-                                    )
-                                    
-                                    if !account.mobile.isEmpty {
-                                        DataCard(
-                                            title: "Móvil asociado",
-                                            subtitle: nil,
-                                            value: account.mobile,
-                                            iconName: "iphone",
-                                            backgroundColor: .green
+                    VStack(spacing: 40) {
+                        ForEach(grouped.keys.sorted(), id: \.self) { groupName in
+                            VStack(alignment: .leading, spacing: 15) {
+                                Text(groupName.uppercased())
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundColor(.secondary)
+                                    .padding(.horizontal, 20)
+                                
+                                let accounts = grouped[groupName] ?? []
+                                ZStack(alignment: .top) {
+                                    ForEach(0..<accounts.count, id: \.self) { index in
+                                        let account = accounts[index]
+                                        WalletCard(
+                                            account: account,
+                                            onEdit: { accountToEdit = account },
+                                            onDelete: { 
+                                                accountToDelete = account
+                                                showingDeleteAlert = true
+                                            }
                                         )
-                                        .padding(.horizontal, 10)
-                                        .scaleEffect(0.98)
+                                        .offset(y: CGFloat(index * 50))
+                                        .onTapGesture {
+                                            selectedAccountForDetail = account
+                                        }
+                                        .zIndex(Double(index))
                                     }
                                 }
-                                .padding(.bottom, 10)
-                                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                                .listRowBackground(Color.clear)
-                                .listRowSeparator(.hidden)
+                                .frame(height: 200 + CGFloat((accounts.count - 1) * 50))
+                                .padding(.horizontal)
                             }
                         }
                     }
+                    .padding(.vertical)
                 }
             }
-            .listStyle(.plain)
             .background(Color(UIColor.systemGroupedBackground))
             
             Button(action: { showingAddAccount = true }) {
@@ -1008,6 +993,9 @@ struct BankAccountsListView: View {
         }
         .sheet(isPresented: $showingAddAccount) {
             AddBankAccountView()
+        }
+        .sheet(item: $selectedAccountForDetail) { account in
+            BankAccountDetailView(account: account)
         }
         .sheet(item: $accountToEdit) { account in
             AddBankAccountView(accountToEdit: account)
@@ -1053,6 +1041,7 @@ struct BillsListView: View {
                             
                             ForEach(grouped[groupName] ?? []) { bill in
                                 DataCard(
+                                    id: bill.id,
                                     title: bill.label,
                                     subtitle: bill.type.rawValue,
                                     value: bill.billNumber,
@@ -1064,21 +1053,6 @@ struct BillsListView: View {
                                         showingDeleteAlert = true
                                     }
                                 )
-                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                    Button(role: .destructive) {
-                                        billToDelete = bill
-                                        showingDeleteAlert = true
-                                    } label: {
-                                        Label("Eliminar", systemImage: "trash.fill")
-                                    }
-                                    
-                                    Button {
-                                        billToEdit = bill
-                                    } label: {
-                                        Label("Editar", systemImage: "pencil")
-                                    }
-                                    .tint(.blue)
-                                }
                                 .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                                 .listRowBackground(Color.clear)
                                 .listRowSeparator(.hidden)
@@ -1148,6 +1122,7 @@ struct KeysListView: View {
                             
                             ForEach(grouped[groupName] ?? []) { key in
                                 DataCard(
+                                    id: key.id,
                                     title: key.label,
                                     subtitle: key.category == .other ? (key.customCategory ?? "Otros") : key.category.rawValue,
                                     value: key.value,
@@ -1159,21 +1134,6 @@ struct KeysListView: View {
                                         showingDeleteAlert = true
                                     }
                                 )
-                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                    Button(role: .destructive) {
-                                        keyToDelete = key
-                                        showingDeleteAlert = true
-                                    } label: {
-                                        Label("Eliminar", systemImage: "trash.fill")
-                                    }
-                                    
-                                    Button {
-                                        keyToEdit = key
-                                    } label: {
-                                        Label("Editar", systemImage: "pencil")
-                                    }
-                                    .tint(.blue)
-                                }
                                 .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                                 .listRowBackground(Color.clear)
                                 .listRowSeparator(.hidden)
@@ -1463,5 +1423,104 @@ struct AddKeyView: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - Bank Account Detail View
+struct BankAccountDetailView: View {
+    @Environment(\.presentationMode) var presentationMode
+    let account: BankAccount
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header with dismiss
+            HStack {
+                Text("Detalles de Tarjeta")
+                    .font(.headline)
+                Spacer()
+                Button(action: { presentationMode.wrappedValue.dismiss() }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title2)
+                        .foregroundColor(.gray)
+                }
+            }
+            .padding()
+            
+            ScrollView {
+                VStack(spacing: 24) {
+                    WalletCard(account: account)
+                        .padding(.horizontal)
+                    
+                    VStack(spacing: 16) {
+                        DetailRow(label: "Etiqueta", value: account.label)
+                        DetailRow(label: "Nombre en Tarjeta", value: account.name)
+                        DetailRow(label: "Número Completo", value: account.cardNumber, isMonospaced: true, canCopy: true)
+                        
+                        if !account.mobile.isEmpty {
+                            DetailRow(label: "Móvil Asociado", value: account.mobile, canCopy: true)
+                        }
+                        
+                        if !account.group.isEmpty {
+                            DetailRow(label: "Grupo", value: account.group)
+                        }
+                    }
+                    .padding()
+                    .background(Color(UIColor.secondarySystemGroupedBackground))
+                    .cornerRadius(16)
+                    .padding(.horizontal)
+                }
+                .padding(.vertical)
+            }
+        }
+        .background(Color(UIColor.systemGroupedBackground))
+    }
+}
+
+struct DetailRow: View {
+    let label: String
+    let value: String
+    var isMonospaced: Bool = false
+    var canCopy: Bool = false
+    
+    @State private var showCopied = false
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label.uppercased())
+                .font(.system(size: 10, weight: .bold))
+                .foregroundColor(.secondary)
+            
+            HStack {
+                Text(value)
+                    .font(isMonospaced ? .system(.body, design: .monospaced) : .body)
+                    .fontWeight(isMonospaced ? .bold : .regular)
+                
+                Spacer()
+                
+                if canCopy {
+                    Button(action: {
+                        UIPasteboard.general.string = value
+                        let generator = UIImpactFeedbackGenerator(style: .light)
+                        generator.impactOccurred()
+                        withAnimation { showCopied = true }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                            withAnimation { showCopied = false }
+                        }
+                    }) {
+                        if showCopied {
+                            Text("Copiado")
+                                .font(.caption2)
+                                .foregroundColor(.green)
+                        } else {
+                            Image(systemName: "doc.on.doc")
+                                .font(.caption)
+                                .foregroundColor(.blue)
+                        }
+                    }
+                }
+            }
+        }
+        .padding(.vertical, 8)
+        Divider()
     }
 }
