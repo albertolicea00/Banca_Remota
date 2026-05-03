@@ -1,39 +1,71 @@
 # Contributing to Banca Remota
 
-First off, thank you for considering contributing to Banca Remota! It's people like you that make this app better for everyone in Cuba.
+Thank you for considering contributing! Any improvement is welcome — new banks, USSD code fixes, UI enhancements, or translations.
+
+## Language
+
+**All contributions must be written in English** — issues, PR descriptions, commit messages, code comments, and review discussions.
+
+> The app UI is intentionally in Spanish because it targets Cuban users. However, all technical communication in this repository must be in English to keep the project accessible to a broader audience and maintain consistent standards. Please also pay close attention to spelling and grammar in your contributions.
+
+---
+
+## Branches
+
+| Branch | Purpose |
+|---|---|
+| `main` | Current stable release. Only receives merges from `beta` when ready to publish. |
+| `beta` | Active development. New features, fixes and experiments go here. |
+
+**Always work from `beta`**, never from `main`.
+
+---
 
 ## How to Contribute
 
-### Reporting Bugs
+### Reporting a Bug
 
-If you find a bug, please open an issue and include:
-
+Open an Issue and include:
 - A clear, descriptive title.
 - Steps to reproduce the bug.
-- What happened vs what you expected to happen.
+- What you expected vs. what actually happened.
 - Screenshots if applicable.
+- iOS version and device model.
 
-### Adding New USSD Codes
+### Fixing or Adding USSD Codes
 
-If a bank changes its codes or adds new ones:
+If a bank changes its codes or adds new operations:
 
-1. Open `BancaRemota/codes.json`.
-2. Add the new entry following the existing schema.
-3. Submit a Pull Request.
+1. Fork the repository.
+2. Create a branch from `beta`: `git checkout -b fix/bpa-codes`.
+3. Edit `BancaRemota/codes.json` following the existing schema.
+4. Open a Pull Request **targeting `beta`**, not `main`.
 
 ### Code Contributions
 
 1. Fork the repository.
-2. Create a new branch (`git checkout -b feature/amazing-feature`).
+2. Create a branch from `beta`:
+   ```bash
+   git checkout beta
+   git checkout -b feature/your-feature-name
+   ```
 3. Make your changes.
-4. Commit your changes (`git commit -m 'Add some amazing feature'`).
-5. Push to the branch (`git push origin feature/amazing-feature`).
-6. Open a Pull Request.
+4. Commit with a clear message:
+   ```bash
+   git commit -m "feat: short description of what it does"
+   ```
+5. Push and open a Pull Request **targeting `beta`**.
+
+---
 
 ## Code Style
 
-Please follow standard Swift API Design Guidelines and maintain the SwiftUI patterns used in the project.
+- Follow the [Swift API Design Guidelines](https://www.swift.org/documentation/api-design-guidelines/).
+- Keep the SwiftUI patterns already used in the project.
+- UI-facing strings must be in Spanish. Internal code (variable names, comments, commit messages) must be in English.
+
+---
 
 ## Questions?
 
-If you have any questions, feel free to open an issue for discussion.
+Open an Issue to discuss before starting work on something large.
