@@ -11,7 +11,7 @@ enum ActiveScreen {
     case cuentasNauta
     case misClaves
     case tasaCambio
-    case facturas
+    case cuentasServicios
 }
 
 // MARK: - Navigation Hub View
@@ -53,7 +53,7 @@ struct MainView: View {
                         KeysListView(onMenuTap: { withAnimation { isMenuOpen.toggle() } })
                     case .tasaCambio:
                         UnderConstructionView(title: "Tasa de Cambio", onMenuTap: { withAnimation { isMenuOpen.toggle() } })
-                    case .facturas:
+                    case .cuentasServicios:
                         BillsListView(onMenuTap: { withAnimation { isMenuOpen.toggle() } })
                     }
                 } else {
@@ -360,7 +360,7 @@ struct SideMenuView: View {
                     }
                     
                     Divider().padding(.trailing, 40)
-                    MenuRow(iconColor: .appPrimary, imageName: nil, systemImageName: "doc.text.fill", title: "Facturas", isSelected: activeScreen == .facturas) { onSelectScreen(.facturas) }
+                    MenuRow(iconColor: .appPrimary, imageName: nil, systemImageName: "doc.text.fill", title: "Cuentas de Servicios", isSelected: activeScreen == .cuentasServicios) { onSelectScreen(.cuentasServicios) }
                     MenuRow(iconColor: .appPrimary, imageName: nil, systemImageName: "wifi", title: "Cuentas de Nauta", isSelected: activeScreen == .cuentasNauta) { onSelectScreen(.cuentasNauta) }
                     MenuRow(iconColor: .appPrimary, imageName: nil, systemImageName: "building.columns.fill", title: "Cuentas de Banco", isSelected: activeScreen == .cuentasBanco) { onSelectScreen(.cuentasBanco) }
 
@@ -845,42 +845,63 @@ struct NautaListView: View {
     @ObservedObject var userData = UserDataManager.shared
     @State private var showingAddAccount = false
     @State private var accountToEdit: NautaAccount?
+    @State private var accountToDelete: NautaAccount?
+    @State private var showingDeleteAlert = false
     
     var body: some View {
         VStack(spacing: 0) {
             TopNavBar(themeColor: .appPrimary, onMenuTap: onMenuTap, title: "Cuentas Nauta")
             
-            ScrollView {
-                VStack(spacing: 24) {
-                    if userData.nautaAccounts.isEmpty {
-                        EmptyStateView(title: "Sin cuentas Nauta", message: "Agrega tus cuentas para tenerlas a mano.", iconName: "wifi")
-                    } else {
-                        let grouped = Dictionary(grouping: userData.nautaAccounts, by: { $0.group.isEmpty ? "General" : $0.group })
-                        
-                        ForEach(grouped.keys.sorted(), id: \.self) { groupName in
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text(groupName.uppercased())
-                                    .font(.system(size: 14, weight: .bold))
-                                    .foregroundColor(.secondary)
-                                    .padding(.horizontal, 4)
-                                
-                                ForEach(grouped[groupName] ?? []) { account in
-                                    DataCard(
-                                        title: account.label,
-                                        subtitle: account.type,
-                                        value: account.account,
-                                        iconName: "person.crop.circle",
-                                        backgroundColor: .appPrimary,
-                                        onEdit: { accountToEdit = account },
-                                        onDelete: { userData.nautaAccounts.removeAll { $0.id == account.id } }
-                                    )
+            List {
+                if userData.nautaAccounts.isEmpty {
+                    EmptyStateView(title: "Sin cuentas Nauta", message: "Agrega tus cuentas para tenerlas a mano.", iconName: "wifi")
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                } else {
+                    let grouped = Dictionary(grouping: userData.nautaAccounts, by: { $0.group.isEmpty ? "General" : $0.group })
+                    
+                    ForEach(grouped.keys.sorted(), id: \.self) { groupName in
+                        Section(header: Text(groupName.uppercased())
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(.secondary)) {
+                            
+                            ForEach(grouped[groupName] ?? []) { account in
+                                DataCard(
+                                    title: account.label,
+                                    subtitle: account.type,
+                                    value: account.account,
+                                    iconName: "person.crop.circle",
+                                    backgroundColor: .appPrimary,
+                                    onEdit: { accountToEdit = account },
+                                    onDelete: { 
+                                        accountToDelete = account
+                                        showingDeleteAlert = true
+                                    }
+                                )
+                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                    Button(role: .destructive) {
+                                        accountToDelete = account
+                                        showingDeleteAlert = true
+                                    } label: {
+                                        Label("Eliminar", systemImage: "trash.fill")
+                                    }
+                                    
+                                    Button {
+                                        accountToEdit = account
+                                    } label: {
+                                        Label("Editar", systemImage: "pencil")
+                                    }
+                                    .tint(.blue)
                                 }
+                                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
                             }
                         }
                     }
                 }
-                .padding()
             }
+            .listStyle(.plain)
             .background(Color(UIColor.systemGroupedBackground))
             
             Button(action: { showingAddAccount = true }) {
@@ -900,6 +921,16 @@ struct NautaListView: View {
         .sheet(item: $accountToEdit) { account in
             AddNautaAccountView(accountToEdit: account)
         }
+        .alert("¿Eliminar cuenta?", isPresented: $showingDeleteAlert) {
+            Button("Cancelar", role: .cancel) {}
+            Button("Eliminar", role: .destructive) {
+                if let account = accountToDelete {
+                    userData.nautaAccounts.removeAll { $0.id == account.id }
+                }
+            }
+        } message: {
+            Text("Esta acción no se puede deshacer.")
+        }
     }
 }
 
@@ -909,53 +940,59 @@ struct BankAccountsListView: View {
     @ObservedObject var userData = UserDataManager.shared
     @State private var showingAddAccount = false
     @State private var accountToEdit: BankAccount?
+    @State private var accountToDelete: BankAccount?
+    @State private var showingDeleteAlert = false
     
     var body: some View {
         VStack(spacing: 0) {
             TopNavBar(themeColor: .appPrimary, onMenuTap: onMenuTap, title: "Cuentas de Banco")
             
-            ScrollView {
-                VStack(spacing: 24) {
-                    if userData.bankAccounts.isEmpty {
-                        EmptyStateView(title: "Sin cuentas bancarias", message: "Guarda tus números de tarjeta y móviles aquí.", iconName: "building.columns")
-                    } else {
-                        let grouped = Dictionary(grouping: userData.bankAccounts, by: { $0.group.isEmpty ? "Mis Tarjetas" : $0.group })
-                        
-                        ForEach(grouped.keys.sorted(), id: \.self) { groupName in
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text(groupName.uppercased())
-                                    .font(.system(size: 14, weight: .bold))
-                                    .foregroundColor(.secondary)
-                                    .padding(.horizontal, 4)
-                                
-                                ForEach(grouped[groupName] ?? []) { account in
-                                    VStack(alignment: .leading, spacing: 12) {
-                                        WalletCard(
-                                            account: account,
-                                            onEdit: { accountToEdit = account },
-                                            onDelete: { userData.bankAccounts.removeAll { $0.id == account.id } }
-                                        )
-                                        
-                                        if !account.mobile.isEmpty {
-                                            DataCard(
-                                                title: "Móvil asociado",
-                                                subtitle: nil,
-                                                value: account.mobile,
-                                                iconName: "iphone",
-                                                backgroundColor: .green
-                                            )
-                                            .padding(.horizontal, 10)
-                                            .scaleEffect(0.98)
+            List {
+                if userData.bankAccounts.isEmpty {
+                    EmptyStateView(title: "Sin cuentas bancarias", message: "Guarda tus números de tarjeta y móviles aquí.", iconName: "building.columns")
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                } else {
+                    let grouped = Dictionary(grouping: userData.bankAccounts, by: { $0.group.isEmpty ? "Mis Tarjetas" : $0.group })
+                    
+                    ForEach(grouped.keys.sorted(), id: \.self) { groupName in
+                        Section(header: Text(groupName.uppercased())
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(.secondary)) {
+                            
+                            ForEach(grouped[groupName] ?? []) { account in
+                                VStack(alignment: .leading, spacing: 12) {
+                                    WalletCard(
+                                        account: account,
+                                        onEdit: { accountToEdit = account },
+                                        onDelete: { 
+                                            accountToDelete = account
+                                            showingDeleteAlert = true
                                         }
+                                    )
+                                    
+                                    if !account.mobile.isEmpty {
+                                        DataCard(
+                                            title: "Móvil asociado",
+                                            subtitle: nil,
+                                            value: account.mobile,
+                                            iconName: "iphone",
+                                            backgroundColor: .green
+                                        )
+                                        .padding(.horizontal, 10)
+                                        .scaleEffect(0.98)
                                     }
-                                    .padding(.bottom, 10)
                                 }
+                                .padding(.bottom, 10)
+                                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
                             }
                         }
                     }
                 }
-                .padding()
             }
+            .listStyle(.plain)
             .background(Color(UIColor.systemGroupedBackground))
             
             Button(action: { showingAddAccount = true }) {
@@ -975,6 +1012,16 @@ struct BankAccountsListView: View {
         .sheet(item: $accountToEdit) { account in
             AddBankAccountView(accountToEdit: account)
         }
+        .alert("¿Eliminar tarjeta?", isPresented: $showingDeleteAlert) {
+            Button("Cancelar", role: .cancel) {}
+            Button("Eliminar", role: .destructive) {
+                if let account = accountToDelete {
+                    userData.bankAccounts.removeAll { $0.id == account.id }
+                }
+            }
+        } message: {
+            Text("Esta acción eliminará los datos de esta tarjeta permanentemente.")
+        }
     }
 }
 
@@ -984,46 +1031,67 @@ struct BillsListView: View {
     @ObservedObject var userData = UserDataManager.shared
     @State private var showingAddBill = false
     @State private var billToEdit: Bill?
+    @State private var billToDelete: Bill?
+    @State private var showingDeleteAlert = false
     
     var body: some View {
         VStack(spacing: 0) {
-            TopNavBar(themeColor: .appPrimary, onMenuTap: onMenuTap, title: "Mis Facturas")
+            TopNavBar(themeColor: .appPrimary, onMenuTap: onMenuTap, title: "Cuentas de Servicios")
             
-            ScrollView {
-                VStack(spacing: 24) {
-                    if userData.bills.isEmpty {
-                        EmptyStateView(title: "Sin facturas", message: "Guarda tus números de factura de servicios.", iconName: "doc.text")
-                    } else {
-                        let grouped = Dictionary(grouping: userData.bills, by: { $0.group.isEmpty ? "General" : $0.group })
-                        
-                        ForEach(grouped.keys.sorted(), id: \.self) { groupName in
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text(groupName.uppercased())
-                                    .font(.system(size: 14, weight: .bold))
-                                    .foregroundColor(.secondary)
-                                    .padding(.horizontal, 4)
-                                
-                                ForEach(grouped[groupName] ?? []) { bill in
-                                    DataCard(
-                                        title: bill.label,
-                                        subtitle: bill.type.rawValue,
-                                        value: bill.billNumber,
-                                        iconName: bill.type.iconName,
-                                        backgroundColor: .orange,
-                                        onEdit: { billToEdit = bill },
-                                        onDelete: { userData.bills.removeAll { $0.id == bill.id } }
-                                    )
+            List {
+                if userData.bills.isEmpty {
+                    EmptyStateView(title: "Sin cuentas", message: "Guarda tus números de servicio (electricidad, agua, etc).", iconName: "doc.text")
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                } else {
+                    let grouped = Dictionary(grouping: userData.bills, by: { $0.group.isEmpty ? "General" : $0.group })
+                    
+                    ForEach(grouped.keys.sorted(), id: \.self) { groupName in
+                        Section(header: Text(groupName.uppercased())
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(.secondary)) {
+                            
+                            ForEach(grouped[groupName] ?? []) { bill in
+                                DataCard(
+                                    title: bill.label,
+                                    subtitle: bill.type.rawValue,
+                                    value: bill.billNumber,
+                                    iconName: bill.type.iconName,
+                                    backgroundColor: .orange,
+                                    onEdit: { billToEdit = bill },
+                                    onDelete: { 
+                                        billToDelete = bill
+                                        showingDeleteAlert = true
+                                    }
+                                )
+                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                    Button(role: .destructive) {
+                                        billToDelete = bill
+                                        showingDeleteAlert = true
+                                    } label: {
+                                        Label("Eliminar", systemImage: "trash.fill")
+                                    }
+                                    
+                                    Button {
+                                        billToEdit = bill
+                                    } label: {
+                                        Label("Editar", systemImage: "pencil")
+                                    }
+                                    .tint(.blue)
                                 }
+                                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
                             }
                         }
                     }
                 }
-                .padding()
             }
+            .listStyle(.plain)
             .background(Color(UIColor.systemGroupedBackground))
             
             Button(action: { showingAddBill = true }) {
-                Label("Nueva Factura", systemImage: "plus.circle.fill")
+                Label("Nueva Cuenta de Servicio", systemImage: "plus.circle.fill")
                     .font(.headline)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
@@ -1039,6 +1107,16 @@ struct BillsListView: View {
         .sheet(item: $billToEdit) { bill in
             AddBillView(billToEdit: bill)
         }
+        .alert("¿Eliminar cuenta?", isPresented: $showingDeleteAlert) {
+            Button("Cancelar", role: .cancel) {}
+            Button("Eliminar", role: .destructive) {
+                if let bill = billToDelete {
+                    userData.bills.removeAll { $0.id == bill.id }
+                }
+            }
+        } message: {
+            Text("Esta acción no se puede deshacer.")
+        }
     }
 }
 
@@ -1048,42 +1126,63 @@ struct KeysListView: View {
     @ObservedObject var userData = UserDataManager.shared
     @State private var showingAddKey = false
     @State private var keyToEdit: UserKey?
+    @State private var keyToDelete: UserKey?
+    @State private var showingDeleteAlert = false
     
     var body: some View {
         VStack(spacing: 0) {
             TopNavBar(themeColor: .appPrimary, onMenuTap: onMenuTap, title: "Mis Claves")
             
-            ScrollView {
-                VStack(spacing: 24) {
-                    if userData.userKeys.isEmpty {
-                        EmptyStateView(title: "Sin claves", message: "Guarda tus PINs y contraseñas de forma segura.", iconName: "key.fill")
-                    } else {
-                        let grouped = Dictionary(grouping: userData.userKeys, by: { $0.group.isEmpty ? "General" : $0.group })
-                        
-                        ForEach(grouped.keys.sorted(), id: \.self) { groupName in
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text(groupName.uppercased())
-                                    .font(.system(size: 14, weight: .bold))
-                                    .foregroundColor(.secondary)
-                                    .padding(.horizontal, 4)
-                                
-                                ForEach(grouped[groupName] ?? []) { key in
-                                    DataCard(
-                                        title: key.label,
-                                        subtitle: key.category.rawValue,
-                                        value: key.value,
-                                        iconName: key.category.iconName,
-                                        backgroundColor: .purple,
-                                        onEdit: { keyToEdit = key },
-                                        onDelete: { userData.userKeys.removeAll { $0.id == key.id } }
-                                    )
+            List {
+                if userData.userKeys.isEmpty {
+                    EmptyStateView(title: "Sin claves", message: "Guarda tus PINs y contraseñas de forma segura.", iconName: "key.fill")
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                } else {
+                    let grouped = Dictionary(grouping: userData.userKeys, by: { $0.group.isEmpty ? "General" : $0.group })
+                    
+                    ForEach(grouped.keys.sorted(), id: \.self) { groupName in
+                        Section(header: Text(groupName.uppercased())
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(.secondary)) {
+                            
+                            ForEach(grouped[groupName] ?? []) { key in
+                                DataCard(
+                                    title: key.label,
+                                    subtitle: key.category == .other ? (key.customCategory ?? "Otros") : key.category.rawValue,
+                                    value: key.value,
+                                    iconName: key.category.iconName,
+                                    backgroundColor: .purple,
+                                    onEdit: { keyToEdit = key },
+                                    onDelete: { 
+                                        keyToDelete = key
+                                        showingDeleteAlert = true
+                                    }
+                                )
+                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                    Button(role: .destructive) {
+                                        keyToDelete = key
+                                        showingDeleteAlert = true
+                                    } label: {
+                                        Label("Eliminar", systemImage: "trash.fill")
+                                    }
+                                    
+                                    Button {
+                                        keyToEdit = key
+                                    } label: {
+                                        Label("Editar", systemImage: "pencil")
+                                    }
+                                    .tint(.blue)
                                 }
+                                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
                             }
                         }
                     }
                 }
-                .padding()
             }
+            .listStyle(.plain)
             .background(Color(UIColor.systemGroupedBackground))
             
             Button(action: { showingAddKey = true }) {
@@ -1102,6 +1201,16 @@ struct KeysListView: View {
         }
         .sheet(item: $keyToEdit) { key in
             AddKeyView(keyToEdit: key)
+        }
+        .alert("¿Eliminar clave?", isPresented: $showingDeleteAlert) {
+            Button("Cancelar", role: .cancel) {}
+            Button("Eliminar", role: .destructive) {
+                if let key = keyToDelete {
+                    userData.userKeys.removeAll { $0.id == key.id }
+                }
+            }
+        } message: {
+            Text("Esta acción no se puede deshacer.")
         }
     }
 }
@@ -1272,7 +1381,7 @@ struct AddBillView: View {
                     TextField("Nombre del Grupo (ej: Casas Familia)", text: $group)
                 }
             }
-            .navigationTitle(billToEdit == nil ? "Nueva Factura" : "Editar Factura")
+            .navigationTitle(billToEdit == nil ? "Nueva Cuenta" : "Editar Cuenta")
             .navigationBarItems(
                 leading: Button("Cancelar") { presentationMode.wrappedValue.dismiss() },
                 trailing: Button("Guardar") {
@@ -1306,6 +1415,7 @@ struct AddKeyView: View {
     @State private var label = ""
     @State private var value = ""
     @State private var category: KeyCategory = .bank
+    @State private var customCategory = ""
     @State private var group = ""
     
     var body: some View {
@@ -1319,6 +1429,10 @@ struct AddKeyView: View {
                             Text(cat.rawValue).tag(cat)
                         }
                     }
+                    
+                    if category == .other {
+                        TextField("¿Qué tipo de clave es?", text: $customCategory)
+                    }
                 }
                 
                 Section(header: Text("Organización")) {
@@ -1329,7 +1443,7 @@ struct AddKeyView: View {
             .navigationBarItems(
                 leading: Button("Cancelar") { presentationMode.wrappedValue.dismiss() },
                 trailing: Button("Guardar") {
-                    let newKey = UserKey(id: keyToEdit?.id ?? UUID(), label: label, value: value, category: category, group: group)
+                    let newKey = UserKey(id: keyToEdit?.id ?? UUID(), label: label, value: value, category: category, customCategory: category == .other ? customCategory : nil, group: group)
                     if let index = UserDataManager.shared.userKeys.firstIndex(where: { $0.id == keyToEdit?.id }) {
                         UserDataManager.shared.userKeys[index] = newKey
                     } else {
@@ -1337,13 +1451,14 @@ struct AddKeyView: View {
                     }
                     presentationMode.wrappedValue.dismiss()
                 }
-                .disabled(label.isEmpty || value.isEmpty)
+                .disabled(label.isEmpty || value.isEmpty || (category == .other && customCategory.isEmpty))
             )
             .onAppear {
                 if let edit = keyToEdit {
                     label = edit.label
                     value = edit.value
                     category = edit.category
+                    customCategory = edit.customCategory ?? ""
                     group = edit.group
                 }
             }

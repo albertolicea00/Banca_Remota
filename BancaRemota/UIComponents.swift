@@ -241,19 +241,21 @@ struct DataCard: View {
                         .background(Color.green.opacity(0.1))
                         .cornerRadius(8)
                 } else {
-                    HStack(spacing: 8) {
+                    Menu {
                         if let onEdit = onEdit {
                             Button(action: onEdit) {
-                                Image(systemName: "pencil")
-                                    .foregroundColor(.blue)
+                                Label("Editar", systemImage: "pencil")
                             }
                         }
                         if let onDelete = onDelete {
-                            Button(action: onDelete) {
-                                Image(systemName: "trash")
-                                    .foregroundColor(.red)
+                            Button(role: .destructive, action: onDelete) {
+                                Label("Eliminar", systemImage: "trash")
                             }
                         }
+                    } label: {
+                        Image(systemName: "ellipsis.circle.fill")
+                            .font(.title3)
+                            .foregroundColor(.gray.opacity(0.6))
                     }
                 }
             }

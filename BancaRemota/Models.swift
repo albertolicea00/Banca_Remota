@@ -195,6 +195,7 @@ struct UserKey: Codable, Identifiable, Equatable {
     var label: String
     var value: String
     var category: KeyCategory
+    var customCategory: String? = nil
     var group: String = ""
 }
 
