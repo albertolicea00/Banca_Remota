@@ -45,7 +45,7 @@ struct TopNavBar: View {
                             .frame(width: 40, height: 40)
                     }
                 } else if isHome {
-                    Image("branding_logo")
+                    Image("AppLogoL")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                 } else if let title = title {

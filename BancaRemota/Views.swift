@@ -327,9 +327,9 @@ struct SideMenuView: View {
             Color(UIColor.systemBackground).ignoresSafeArea()
             
             VStack(alignment: .leading, spacing: 30) {
-                // Branding Image
+                // App Logo Large
                 Button(action: onSelectHome) {
-                    Image("branding_logo")
+                    Image("AppLogoL")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(maxWidth: .infinity)
