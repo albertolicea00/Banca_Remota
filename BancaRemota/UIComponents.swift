@@ -120,7 +120,7 @@ struct BankSelectionCard: View {
                     Color.white
                     
                     // Logo representation
-                    Image(bank.logoName)
+                    Image("\(bank.id)/background")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 80, height: 80)
