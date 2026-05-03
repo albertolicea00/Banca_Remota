@@ -264,8 +264,6 @@ struct HelpView: View {
                             Divider().padding(.top, 5)
                         }
 
-                        HelpSection(title: "Lo que viene", content: "🌓 Soporte para Modo Claro y Oscuro.\n🎨 Nuevo tema visual Liquid Glass (opcional).\n📡 Alerta inteligente cuando no hay señal móvil.\n⚡️ Vista rápida con tus operaciones favoritas.\n🚀 Una segunda aplicación con diseño ultra-moderno.")
-
                         HelpSection(title: "Nuestro Compromiso", content: "Esta versión de la aplicación se mantendrá tal cual la ves: ligera, sencilla y rápida. Queremos que funcione en todos los dispositivos Apple, incluso en los más antiguos, para evitar que tengas que cambiar de teléfono solo para usar tu banco. Creemos en la tecnología duradera y en respetar la costumbre de nuestros usuarios.")
 
                         VStack(alignment: .leading, spacing: 10) {
