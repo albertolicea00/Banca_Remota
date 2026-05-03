@@ -428,23 +428,6 @@ struct WalletCard: View {
                             Image(systemName: "doc.on.doc.fill")
                                 .foregroundColor(.white.opacity(0.8))
                         }
-                        
-                        Menu {
-                            if let onEdit = onEdit {
-                                Button(action: onEdit) {
-                                    Label("Editar", systemImage: "pencil")
-                                }
-                            }
-                            if let onDelete = onDelete {
-                                Button(role: .destructive, action: onDelete) {
-                                    Label("Eliminar", systemImage: "trash")
-                                }
-                            }
-                        } label: {
-                            Image(systemName: "ellipsis.circle.fill")
-                                .font(.title3)
-                                .foregroundColor(.white.opacity(0.8))
-                        }
                     }
                 }
             }
@@ -453,22 +436,21 @@ struct WalletCard: View {
         .frame(height: 200)
         .background(
             RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(
+                .fill(Color(hex: account.colorHex))
+                .overlay(
                     LinearGradient(
-                        colors: [
-                            Color(hex: account.colorHex),
-                            Color(hex: account.colorHex).opacity(0.7)
-                        ],
+                        colors: [Color.clear, Color.black.opacity(0.25)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
+                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                        .stroke(Color.white.opacity(0.15), lineWidth: 1)
                 )
         )
-        .shadow(color: Color.black.opacity(0.3), radius: 10, x: 0, y: 5)
+        .shadow(color: Color.black.opacity(0.25), radius: 8, x: 0, y: 4)
     }
     
     private func maskCardNumber(_ number: String) -> String {

@@ -952,26 +952,15 @@ struct BankAccountsListView: View {
                                     .padding(.horizontal, 20)
                                 
                                 let accounts = grouped[groupName] ?? []
-                                ZStack(alignment: .top) {
-                                    ForEach(0..<accounts.count, id: \.self) { index in
-                                        let account = accounts[index]
-                                        WalletCard(
-                                            account: account,
-                                            onEdit: { accountToEdit = account },
-                                            onDelete: { 
-                                                accountToDelete = account
-                                                showingDeleteAlert = true
+                                VStack(spacing: 12) {
+                                    ForEach(accounts) { account in
+                                        WalletCard(account: account)
+                                            .padding(.horizontal)
+                                            .onTapGesture {
+                                                selectedAccountForDetail = account
                                             }
-                                        )
-                                        .offset(y: CGFloat(index * 50))
-                                        .onTapGesture {
-                                            selectedAccountForDetail = account
-                                        }
-                                        .zIndex(Double(index))
                                     }
                                 }
-                                .frame(height: 200 + CGFloat((accounts.count - 1) * 50))
-                                .padding(.horizontal)
                             }
                         }
                     }
@@ -995,7 +984,18 @@ struct BankAccountsListView: View {
             AddBankAccountView()
         }
         .sheet(item: $selectedAccountForDetail) { account in
-            BankAccountDetailView(account: account)
+            BankAccountDetailView(
+                account: account,
+                onEdit: {
+                    selectedAccountForDetail = nil
+                    accountToEdit = account
+                },
+                onDelete: {
+                    selectedAccountForDetail = nil
+                    accountToDelete = account
+                    showingDeleteAlert = true
+                }
+            )
         }
         .sheet(item: $accountToEdit) { account in
             AddBankAccountView(accountToEdit: account)
@@ -1430,7 +1430,9 @@ struct AddKeyView: View {
 struct BankAccountDetailView: View {
     @Environment(\.presentationMode) var presentationMode
     let account: BankAccount
-    
+    var onEdit: (() -> Void)? = nil
+    var onDelete: (() -> Void)? = nil
+
     var body: some View {
         VStack(spacing: 0) {
             // Header with dismiss
@@ -1438,10 +1440,26 @@ struct BankAccountDetailView: View {
                 Text("Detalles de Tarjeta")
                     .font(.headline)
                 Spacer()
-                Button(action: { presentationMode.wrappedValue.dismiss() }) {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.title2)
-                        .foregroundColor(.gray)
+                HStack(spacing: 16) {
+                    if let onEdit = onEdit {
+                        Button(action: { presentationMode.wrappedValue.dismiss(); DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { onEdit() } }) {
+                            Image(systemName: "pencil.circle.fill")
+                                .font(.title2)
+                                .foregroundColor(.appPrimary)
+                        }
+                    }
+                    if let onDelete = onDelete {
+                        Button(action: { presentationMode.wrappedValue.dismiss(); DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { onDelete() } }) {
+                            Image(systemName: "trash.circle.fill")
+                                .font(.title2)
+                                .foregroundColor(.red)
+                        }
+                    }
+                    Button(action: { presentationMode.wrappedValue.dismiss() }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title2)
+                            .foregroundColor(.gray)
+                    }
                 }
             }
             .padding()
