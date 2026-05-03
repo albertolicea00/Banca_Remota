@@ -97,20 +97,24 @@ struct BankSelectionView: View {
     let onSelectBank: (Bank) -> Void
     let onMenuTap: () -> Void
     
+    @AppStorage("showBanksInFavorites") private var showBanksInFavorites = true
+    
     var body: some View {
         VStack(spacing: 0) {
             TopNavBar(themeColor: Color(UIColor.systemBackground), onMenuTap: onMenuTap)
             
             ScrollView {
                 VStack {
-                    HStack(spacing: 15) {
-                        ForEach(banks) { bank in
-                            BankSelectionCard(bank: bank) {
-                                onSelectBank(bank)
+                    if showBanksInFavorites {
+                        HStack(spacing: 15) {
+                            ForEach(banks) { bank in
+                                BankSelectionCard(bank: bank) {
+                                    onSelectBank(bank)
+                                }
                             }
                         }
+                        .padding()
                     }
-                    .padding()
                     
                     Spacer()
                 }
@@ -126,21 +130,25 @@ struct OperationsListView: View {
     let allBanks: [Bank]
     let onMenuTap: () -> Void
     
+    @AppStorage("showBankNameBanner") private var showBankNameBanner = true
+    
     var body: some View {
         VStack(spacing: 0) {
             TopNavBar(themeColor: bank.themeColor, onMenuTap: onMenuTap, bank: bank)
             
             // Banner with full bank name
-            HStack {
-                Text(bank.name)
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(.primary)
+            if showBankNameBanner {
+                HStack {
+                    Text(bank.name)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(.primary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(bank.themeColor)
+                .shadow(color: Color.black.opacity(0.15), radius: 3, x: 0, y: 3)
+                .zIndex(1) // Keep shadow above scrollview
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 10)
-            .background(bank.themeColor)
-            .shadow(color: Color.black.opacity(0.15), radius: 3, x: 0, y: 3)
-            .zIndex(1) // Keep shadow above scrollview
             
             ScrollView {
                 VStack(spacing: 0) {
@@ -413,6 +421,10 @@ struct ConfigView: View {
     @AppStorage("authExpiration") private var authExpiration: Double = 1.0 // 1 min, 5 min, etc.
     @AppStorage("lastAuthTime") private var lastAuthTime: Double = 0
     
+    @AppStorage("showNetworkStatus") private var showNetworkStatus = false
+    @AppStorage("showBankNameBanner") private var showBankNameBanner = true
+    @AppStorage("showBanksInFavorites") private var showBanksInFavorites = true
+    
     @State private var pendingAuthEnabled: Bool = false
     
     var body: some View {
@@ -428,6 +440,12 @@ struct ConfigView: View {
                     }
                     
                     Toggle("Modo Liquid Glass", isOn: $liquidGlass)
+                }
+                
+                Section(header: Text("General y Preferencias")) {
+                    Toggle("Aviso de estado de conexión", isOn: $showNetworkStatus)
+                    Toggle("Nombre de banco en vista", isOn: $showBankNameBanner)
+                    Toggle("Mostrar bancos en favoritos", isOn: $showBanksInFavorites)
                 }
                 
                 Section(header: Text("Seguridad y Autenticación"), footer: Text("Protege el acceso a la aplicación usando la seguridad nativa de tu dispositivo (Face ID, Touch ID o Código).")) {
