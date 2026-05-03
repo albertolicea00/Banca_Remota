@@ -411,55 +411,77 @@ struct HelpView: View {
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 25) {
-                    // Info Sections
                     Group {
-                        HelpSection(title: "Sobre la Aplicación", content: "Banca Remota es una solución nativa diseñada para simplificar y agilizar las operaciones bancarias a través de códigos USSD en Cuba. Esta herramienta permite gestionar cuentas de Banco en Cuba de forma intuitiva.\n\nEste proyecto surge para rescatar la funcionalidad de la aplicación original homónima tras su desaparición. Reconocemos el trabajo de Henry Cruz, cuya versión anterior fue esencial para los usuarios.")
-                        
+                        HelpSection(title: "Sobre la Aplicación", content: "Banca Remota es una utilidad nativa para iPhone diseñada para usuarios de la banca cubana. Permite ejecutar operaciones bancarias mediante códigos USSD directamente desde el marcador del teléfono, sin necesidad de internet.\n\nCompatible con bancos cubanos que ofrezcan servicios USSD. Incluye además un gestor local de tarjetas, cuentas Nauta, facturas de servicios y contraseñas.")
+
+                        HelpSection(title: "¿Qué es USSD?", content: "USSD (Servicio Suplementario de Datos No Estructurados) es un protocolo de telefonía que permite interactuar con el banco marcando códigos especiales como *5#. No requiere datos móviles ni Wi-Fi, funciona con cualquier señal de voz.\n\nAl tocar una operación en la app, se abre automáticamente el marcador del sistema con el código correspondiente listo para marcar.")
+
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Contacto y Colaboración")
                                 .font(.headline)
                                 .foregroundColor(.appPrimary)
-                            
+
                             Link(destination: URL(string: "https://www.linkedin.com/in/albertolicea00")!) {
                                 Label("Alberto Licea (Desarrollador)", systemImage: "person.circle")
                             }
                             .foregroundColor(.blue)
-                            
+
                             Link(destination: URL(string: "https://github.com/albertolicea00/Banca_Remota")!) {
                                 Label("Código Fuente en GitHub", systemImage: "terminal")
                             }
                             .foregroundColor(.blue)
                             .padding(.top, 2)
-                            
-                            Text("Puedes colaborar sugiriendo mejoras, reportando errores o aportando nuevas imágenes para los bancos.")
+
+                            Text("Puedes colaborar sugiriendo mejoras, reportando errores o aportando actualizaciones de los códigos USSD.")
                                 .font(.caption)
                                 .foregroundColor(.gray)
                                 .padding(.top, 2)
-                            
+
                             Divider().padding(.top, 5)
                         }
 
-                        HelpSection(title: "Nuestro Compromiso", content: "Esta versión de la aplicación se mantendrá tal cual la ves: ligera, sencilla y rápida. Queremos que funcione en todos los dispositivos Apple, incluso en los más antiguos, para evitar que tengas que cambiar de teléfono solo para usar tu banco. Creemos en la tecnología duradera y en respetar la costumbre de nuestros usuarios.")
+                        HelpSection(title: "Nuestro Compromiso", content: "Esta aplicación se mantendrá ligera, sencilla y rápida. El objetivo es que funcione en todos los dispositivos Apple, incluso en los más antiguos, sin requerir actualizaciones de hardware para acceder a tu banco.")
 
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Créditos")
                                 .font(.headline)
                                 .foregroundColor(.appPrimary)
-                            
+
                             Link(destination: URL(string: "https://www.linkedin.com/in/henrycruzmederos")!) {
-                                Label("Henry Cruz (Creador original)", systemImage: "link")
+                                Label("Henry Cruz (Creador de la app original)", systemImage: "link")
                             }
                             .font(.body)
                             .foregroundColor(.gray)
-                            
+
                             Divider().padding(.top, 5)
                         }
-                        
-                        HelpSection(title: "Privacidad", content: "La aplicación no almacena ni transmite sus datos personales. Todas las operaciones se realizan localmente mediante llamadas al sistema telefónico (USSD).")
+
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Privacidad y Seguridad")
+                                .font(.headline)
+                                .foregroundColor(.appPrimary)
+
+                            VStack(alignment: .leading, spacing: 8) {
+                                Label("Sin conexión a internet", systemImage: "wifi.slash")
+                                Label("Sin servidores ni cuentas de usuario", systemImage: "server.rack")
+                                Label("Sin publicidad ni rastreo", systemImage: "eye.slash")
+                                Label("Todos los datos se guardan solo en tu dispositivo", systemImage: "iphone.and.arrow.right.inward")
+                                Label("La sección de Claves requiere autenticación biométrica", systemImage: "faceid")
+                            }
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+
+                            Text("La app no transmite, sincroniza ni respalda ningún dato en la nube. Todo permanece en el almacenamiento local de tu iPhone, protegido por el sistema operativo iOS.")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                                .padding(.top, 4)
+
+                            Divider().padding(.top, 5)
+                        }
                     }
-                    
+
                     Spacer(minLength: 20)
-                    
+
                     Text("Versión 2.0.1")
                         .font(.caption)
                         .foregroundColor(.gray)
@@ -542,18 +564,28 @@ struct TutorialView: View {
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 25) {
-                    Text("Ayuda y Uso de la App")
+                    Text("Cómo usar la aplicación")
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundColor(.appPrimary)
                         .padding(.bottom, 10)
-                    
-                    HelpSection(title: "Cómo realizar operaciones", content: "Para realizar una operación, selecciona el banco deseado en el inicio. Luego verás un listado de categorías. Toca cualquier operación y la app generará y ejecutará automáticamente el código USSD correspondiente en tu teléfono.")
-                    
-                    HelpSection(title: "Configuración Inicial", content: "Es recomendable registrarse o autenticarse primero dentro de las opciones de 'Sesión' de cada banco para poder consultar saldo o realizar transferencias.")
-                    
-                    HelpSection(title: "Límites de Tarjeta", content: "Para consultas y cambios de límites diarios, puedes dirigirte a la sección de Consultas o Configuración de tu banco específico.")
-                    
+
+                    HelpSection(title: "Operaciones bancarias", content: "Selecciona tu banco desde la pantalla de inicio o el menú lateral. Verás las operaciones organizadas por categorías: Sesión, Consultas, Transferencias, etc. Al tocar cualquiera, se abre el marcador del teléfono con el código USSD listo. Solo confirma la llamada.")
+
+                    HelpSection(title: "Primera vez: Sesión", content: "Antes de consultar saldo o hacer transferencias, debes autenticarte en el banco. Busca la categoría 'Sesión' o 'Inicio de sesión' dentro de tu banco y ejecuta esa operación primero. Cada banco puede requerir tu número de tarjeta o móvil durante el proceso USSD.")
+
+                    HelpSection(title: "Favoritos", content: "Desde Inicio puedes agregar operaciones frecuentes a Favoritos para acceder a ellas sin navegar por el banco. Mantén pulsado y arrastra para reordenarlas. Puedes personalizar el color de las tarjetas favoritas desde Configuración.")
+
+                    HelpSection(title: "Gestión de Tarjetas", content: "En 'Cuentas de Banco' puedes guardar los datos de tus tarjetas (número, titular, móvil asociado). Los números se muestran enmascarados pero puedes copiarlos al portapapeles. Toca una tarjeta para ver todos los detalles.")
+
+                    HelpSection(title: "Cuentas Nauta", content: "Guarda tus usuarios de Nauta (Nacional e Internacional) organizados por grupos. Útil para tener a mano los usuarios al recargar o consultar saldo mediante USSD.")
+
+                    HelpSection(title: "Facturas de Servicios", content: "En 'Cuentas de Servicios' puedes guardar los números de contrato de electricidad, agua, gas y teléfono. Cópialos fácilmente cuando los necesites para una operación USSD de pago.")
+
+                    HelpSection(title: "Mis Claves", content: "Guarda PINs, contraseñas y claves de forma local. Esta sección solo está disponible si tienes activada la autenticación biométrica en Configuración, como medida de seguridad adicional.")
+
+                    HelpSection(title: "Autenticación", content: "Desde Configuración puedes activar Face ID / Touch ID para proteger la entrada a la app. También puedes ajustar el tiempo de expiración de sesión (desde inmediato hasta 15 minutos).")
+
                     Spacer()
                 }
                 .padding(25)
