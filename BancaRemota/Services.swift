@@ -33,7 +33,7 @@ import SwiftUI
 class AuthManager: ObservableObject {
     static let shared = AuthManager()
     
-    @AppStorage("authMethod") private var authMethod: Int = 0
+    @AppStorage("authEnabled") private var authEnabled: Bool = false
     @AppStorage("authExpiration") private var authExpiration: Double = 1.0
     @AppStorage("lastAuthTime") private var lastAuthTime: Double = 0
     
@@ -45,7 +45,7 @@ class AuthManager: ObservableObject {
     }
     
     func checkExpiration() {
-        if authMethod == 0 {
+        if !authEnabled {
             isAuthenticated = true
             return
         }
@@ -61,7 +61,7 @@ class AuthManager: ObservableObject {
     }
     
     func authenticate() {
-        if authMethod == 0 {
+        if !authEnabled {
             isAuthenticated = true
             return
         }
@@ -70,7 +70,7 @@ class AuthManager: ObservableObject {
         var error: NSError?
         let reason = "Autentícate para acceder a Banca Remota"
         
-        let policy: LAPolicy = authMethod == 2 ? .deviceOwnerAuthenticationWithBiometrics : .deviceOwnerAuthentication
+        let policy: LAPolicy = .deviceOwnerAuthentication
         
         if context.canEvaluatePolicy(policy, error: &error) {
             isAuthenticating = true
@@ -84,20 +84,7 @@ class AuthManager: ObservableObject {
                 }
             }
         } else {
-            if context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) {
-                isAuthenticating = true
-                context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: reason) { success, _ in
-                    DispatchQueue.main.async {
-                        self.isAuthenticating = false
-                        if success {
-                            self.isAuthenticated = true
-                            self.lastAuthTime = Date().timeIntervalSince1970
-                        }
-                    }
-                }
-            } else {
-                self.isAuthenticated = true
-            }
+            self.isAuthenticated = true
         }
     }
 }

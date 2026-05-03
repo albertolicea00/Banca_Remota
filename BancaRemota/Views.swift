@@ -409,11 +409,11 @@ struct ConfigView: View {
     
     @AppStorage("darkModePreference") private var darkMode: Int = 0 // 0 = Default, 1 = Light, 2 = Dark
     @AppStorage("liquidGlassEnabled") private var liquidGlass = false
-    @AppStorage("authMethod") private var authMethod: Int = 0 // 0 = Ninguno, 1 = PIN, 2 = Face ID / Touch ID
+    @AppStorage("authEnabled") private var authEnabled: Bool = false
     @AppStorage("authExpiration") private var authExpiration: Double = 1.0 // 1 min, 5 min, etc.
     @AppStorage("lastAuthTime") private var lastAuthTime: Double = 0
     
-    @State private var pendingAuthMethod: Int = 0
+    @State private var pendingAuthEnabled: Bool = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -430,14 +430,10 @@ struct ConfigView: View {
                     Toggle("Modo Liquid Glass", isOn: $liquidGlass)
                 }
                 
-                Section(header: Text("Seguridad y Autenticación"), footer: Text("Protege el acceso a la aplicación usando la seguridad nativa de tu dispositivo.")) {
-                    Picker("Autenticación", selection: $pendingAuthMethod) {
-                        Text("Ninguno").tag(0)
-                        Text("Código del iPhone").tag(1)
-                        Text("Face / Touch ID").tag(2)
-                    }
+                Section(header: Text("Seguridad y Autenticación"), footer: Text("Protege el acceso a la aplicación usando la seguridad nativa de tu dispositivo (Face ID, Touch ID o Código).")) {
+                    Toggle("Requerir Autenticación", isOn: $pendingAuthEnabled)
                     
-                    if authMethod != 0 {
+                    if authEnabled {
                         Picker("Expirar Sesión", selection: $authExpiration) {
                             Text("Inmediato").tag(0.0)
                             Text("En 30 segundos").tag(0.5)
@@ -448,40 +444,28 @@ struct ConfigView: View {
                     }
                 }
             }
-            .onChange(of: pendingAuthMethod) { newValue in
-                guard newValue != authMethod else { return }
+            .onChange(of: pendingAuthEnabled) { newValue in
+                guard newValue != authEnabled else { return }
                 
                 let context = LAContext()
-                let policy: LAPolicy = (newValue == 0 ? authMethod : newValue) == 2 ? .deviceOwnerAuthenticationWithBiometrics : .deviceOwnerAuthentication
-                
                 var error: NSError?
-                if context.canEvaluatePolicy(policy, error: &error) {
-                    context.evaluatePolicy(policy, localizedReason: "Confirma para cambiar la seguridad") { success, _ in
-                        DispatchQueue.main.async {
-                            if success {
-                                authMethod = newValue
-                                lastAuthTime = Date().timeIntervalSince1970
-                                AuthManager.shared.isAuthenticated = true
-                            } else {
-                                pendingAuthMethod = authMethod
-                            }
-                        }
-                    }
-                } else if context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) {
+                
+                if context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) {
                     context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: "Confirma para cambiar la seguridad") { success, _ in
                         DispatchQueue.main.async {
                             if success {
-                                authMethod = newValue
+                                authEnabled = newValue
                                 lastAuthTime = Date().timeIntervalSince1970
                                 AuthManager.shared.isAuthenticated = true
                             } else {
-                                pendingAuthMethod = authMethod
+                                pendingAuthEnabled = authEnabled // Revert
                             }
                         }
                     }
                 } else {
                     DispatchQueue.main.async {
-                        authMethod = newValue
+                        authEnabled = newValue
+                        lastAuthTime = Date().timeIntervalSince1970
                     }
                 }
             }
@@ -489,7 +473,7 @@ struct ConfigView: View {
                 lastAuthTime = Date().timeIntervalSince1970
             }
             .onAppear {
-                pendingAuthMethod = authMethod
+                pendingAuthEnabled = authEnabled
             }
         }
     }
