@@ -422,7 +422,7 @@ struct ConfigView: View {
             Form {
                 Section(header: Text("Apariencia")) {
                     Picker("Tema Visual", selection: $darkMode) {
-                        Text("Por defecto del sistema").tag(0)
+                        Text("Por defecto").tag(0)
                         Text("Modo Claro").tag(1)
                         Text("Modo Oscuro").tag(2)
                     }
