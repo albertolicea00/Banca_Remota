@@ -198,7 +198,7 @@ struct DataCard: View {
     
     var body: some View {
         ZStack {
-            // Background Actions (Rounded Buttons)
+            /* Background Actions (Rounded Buttons)
             HStack(spacing: 12) {
                 Spacer()
                 
@@ -235,6 +235,7 @@ struct DataCard: View {
                 }
             }
             .padding(.horizontal, 10)
+            */
             
             // Foreground Card
             HStack(spacing: 16) {
@@ -298,8 +299,9 @@ struct DataCard: View {
             .padding()
             .background(Color(UIColor.secondarySystemBackground))
             .cornerRadius(16)
-            .offset(x: isSwiped ? -130 : (userData.activeSwipeID == id ? offset : 0))
+            // .offset(x: isSwiped ? -130 : (userData.activeSwipeID == id ? offset : 0)) // COMENTADO: Desplazamiento de la tarjeta
             .contentShape(Rectangle())
+            /* // COMENTADO: Gesto de arrastre
             .gesture(
                 DragGesture()
                     .onChanged { value in
@@ -322,6 +324,7 @@ struct DataCard: View {
                         }
                     }
             )
+            */
             .onTapGesture {
                 if isSwiped {
                     withAnimation(.spring()) { 
