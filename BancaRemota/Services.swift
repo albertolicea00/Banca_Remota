@@ -26,6 +26,82 @@ class DataService {
     }
 }
 
+import LocalAuthentication
+import SwiftUI
+
+// MARK: - Authentication Service
+class AuthManager: ObservableObject {
+    static let shared = AuthManager()
+    
+    @AppStorage("authMethod") private var authMethod: Int = 0
+    @AppStorage("authExpiration") private var authExpiration: Double = 1.0
+    @AppStorage("lastAuthTime") private var lastAuthTime: Double = 0
+    
+    @Published var isAuthenticated: Bool = false
+    @Published var isAuthenticating: Bool = false
+    
+    private init() {
+        checkExpiration()
+    }
+    
+    func checkExpiration() {
+        if authMethod == 0 {
+            isAuthenticated = true
+            return
+        }
+        
+        let now = Date().timeIntervalSince1970
+        let expirationSeconds = authExpiration * 60.0
+        
+        if (now - lastAuthTime) > expirationSeconds {
+            isAuthenticated = false
+        } else {
+            isAuthenticated = true
+        }
+    }
+    
+    func authenticate() {
+        if authMethod == 0 {
+            isAuthenticated = true
+            return
+        }
+        
+        let context = LAContext()
+        var error: NSError?
+        let reason = "Autentícate para acceder a Banca Remota"
+        
+        let policy: LAPolicy = authMethod == 2 ? .deviceOwnerAuthenticationWithBiometrics : .deviceOwnerAuthentication
+        
+        if context.canEvaluatePolicy(policy, error: &error) {
+            isAuthenticating = true
+            context.evaluatePolicy(policy, localizedReason: reason) { success, _ in
+                DispatchQueue.main.async {
+                    self.isAuthenticating = false
+                    if success {
+                        self.isAuthenticated = true
+                        self.lastAuthTime = Date().timeIntervalSince1970
+                    }
+                }
+            }
+        } else {
+            if context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) {
+                isAuthenticating = true
+                context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: reason) { success, _ in
+                    DispatchQueue.main.async {
+                        self.isAuthenticating = false
+                        if success {
+                            self.isAuthenticated = true
+                            self.lastAuthTime = Date().timeIntervalSince1970
+                        }
+                    }
+                }
+            } else {
+                self.isAuthenticated = true
+            }
+        }
+    }
+}
+
 // MARK: - Telephony/USSD Service
 class CallService {
     static let shared = CallService()

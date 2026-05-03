@@ -1,4 +1,5 @@
 import SwiftUI
+import LocalAuthentication
 
 enum ActiveScreen {
     case home
@@ -409,7 +410,10 @@ struct ConfigView: View {
     @AppStorage("darkModePreference") private var darkMode: Int = 0 // 0 = Default, 1 = Light, 2 = Dark
     @AppStorage("liquidGlassEnabled") private var liquidGlass = false
     @AppStorage("authMethod") private var authMethod: Int = 0 // 0 = Ninguno, 1 = PIN, 2 = Face ID / Touch ID
-    @AppStorage("authExpiration") private var authExpiration: Int = 1 // 1 min, 5 min, etc.
+    @AppStorage("authExpiration") private var authExpiration: Double = 1.0 // 1 min, 5 min, etc.
+    @AppStorage("lastAuthTime") private var lastAuthTime: Double = 0
+    
+    @State private var pendingAuthMethod: Int = 0
     
     var body: some View {
         VStack(spacing: 0) {
@@ -426,10 +430,10 @@ struct ConfigView: View {
                     Toggle("Modo Liquid Glass", isOn: $liquidGlass)
                 }
                 
-                Section(header: Text("Seguridad y Autenticación"), footer: Text("Protege el acceso a la aplicación requiriendo autenticación.")) {
-                    Picker("Autenticación", selection: $authMethod) {
+                Section(header: Text("Seguridad y Autenticación"), footer: Text("Protege el acceso a la aplicación usando la seguridad nativa de tu dispositivo.")) {
+                    Picker("Autenticación", selection: $pendingAuthMethod) {
                         Text("Ninguno").tag(0)
-                        Text("PIN").tag(1)
+                        Text("Código del iPhone").tag(1)
                         Text("Face / Touch ID").tag(2)
                     }
                     
@@ -443,6 +447,49 @@ struct ConfigView: View {
                         }
                     }
                 }
+            }
+            .onChange(of: pendingAuthMethod) { newValue in
+                guard newValue != authMethod else { return }
+                
+                let context = LAContext()
+                let policy: LAPolicy = (newValue == 0 ? authMethod : newValue) == 2 ? .deviceOwnerAuthenticationWithBiometrics : .deviceOwnerAuthentication
+                
+                var error: NSError?
+                if context.canEvaluatePolicy(policy, error: &error) {
+                    context.evaluatePolicy(policy, localizedReason: "Confirma para cambiar la seguridad") { success, _ in
+                        DispatchQueue.main.async {
+                            if success {
+                                authMethod = newValue
+                                lastAuthTime = Date().timeIntervalSince1970
+                                AuthManager.shared.isAuthenticated = true
+                            } else {
+                                pendingAuthMethod = authMethod
+                            }
+                        }
+                    }
+                } else if context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) {
+                    context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: "Confirma para cambiar la seguridad") { success, _ in
+                        DispatchQueue.main.async {
+                            if success {
+                                authMethod = newValue
+                                lastAuthTime = Date().timeIntervalSince1970
+                                AuthManager.shared.isAuthenticated = true
+                            } else {
+                                pendingAuthMethod = authMethod
+                            }
+                        }
+                    }
+                } else {
+                    DispatchQueue.main.async {
+                        authMethod = newValue
+                    }
+                }
+            }
+            .onChange(of: authExpiration) { _ in
+                lastAuthTime = Date().timeIntervalSince1970
+            }
+            .onAppear {
+                pendingAuthMethod = authMethod
             }
         }
     }
