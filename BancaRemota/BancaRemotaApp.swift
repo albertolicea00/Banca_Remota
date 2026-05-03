@@ -18,7 +18,7 @@ struct BancaRemotaApp: App {
                     VStack(spacing: 20) {
                         Image(systemName: "lock.shield")
                             .font(.system(size: 60))
-                            .foregroundColor(Color(hex: "B38B4D"))
+                            .foregroundColor(.appPrimary)
                         Text("Aplicación Bloqueada")
                             .font(.title2)
                             .fontWeight(.bold)
@@ -34,7 +34,7 @@ struct BancaRemotaApp: App {
                                 .foregroundColor(.white)
                                 .padding()
                                 .frame(width: 200)
-                                .background(Color(hex: "B38B4D"))
+                                .background(Color.appPrimary)
                                 .cornerRadius(12)
                         }
                     }

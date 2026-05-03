@@ -115,6 +115,31 @@ struct MainView: View {
     }
 }
 
+// MARK: - Favorite Drop Delegate
+struct FavoriteDropDelegate: DropDelegate {
+    let item: FavoriteOperation
+    @Binding var items: [FavoriteOperation]
+    @Binding var draggedItem: FavoriteOperation?
+
+    func performDrop(info: DropInfo) -> Bool {
+        draggedItem = nil
+        return true
+    }
+
+    func dropEntered(info: DropInfo) {
+        guard let draggedItem = draggedItem,
+              draggedItem != item,
+              let from = items.firstIndex(of: draggedItem),
+              let to = items.firstIndex(of: item) else { return }
+        
+        if from != to {
+            withAnimation(.default) {
+                items.move(fromOffsets: IndexSet(integer: from), toOffset: to > from ? to + 1 : to)
+            }
+        }
+    }
+}
+
 // MARK: - Bank Selection Screen
 struct BankSelectionView: View {
     let banks: [Bank]
@@ -123,9 +148,14 @@ struct BankSelectionView: View {
     let onMenuTap: () -> Void
     
     @AppStorage("showBanksInFavorites") private var showBanksInFavorites = true
+    @AppStorage("useBanksAsLogin") private var useBanksAsLogin = false
     @AppStorage("showShortcutsInFavorites") private var showShortcutsInFavorites = true
+    @AppStorage("useCustomFavoriteColor") private var useCustomFavoriteColor = false
+    @AppStorage("favoriteCustomColorHex") private var favoriteCustomColorHex = "B38B4D"
     @ObservedObject private var favoritesManager = FavoritesManager.shared
     @State private var isShowingAddFavorite = false
+    @State private var draggedItem: FavoriteOperation?
+    
     var body: some View {
         VStack(spacing: 0) {
             TopNavBar(themeColor: Color(UIColor.systemBackground), onMenuTap: onMenuTap, isHome: true)
@@ -142,7 +172,12 @@ struct BankSelectionView: View {
                             HStack(spacing: 15) {
                                 ForEach(banks) { bank in
                                     BankSelectionCard(bank: bank) {
-                                        onSelectBank(bank)
+                                        if useBanksAsLogin,
+                                           let authOp = bank.categories.flatMap({ $0.operations }).first(where: { $0.isLogin == true }) {
+                                            CallService.shared.executeUSSD(code: authOp.ussdCode)
+                                        } else {
+                                            onSelectBank(bank)
+                                        }
                                     }
                                 }
                             }
@@ -161,11 +196,11 @@ struct BankSelectionView: View {
                             ScrollViewReader { proxy in
                                 ScrollView(.horizontal, showsIndicators: false) {
                                     HStack(spacing: 20) {
-                                        // MenuShortcutCard(iconName: "person.crop.circle", title: "Contactos", themeColor: Color(hex: "B38B4D")) { onSelectScreen(.contactos) }.id(0)
-                                        MenuShortcutCard(iconName: "wifi", title: "Nauta", themeColor: Color(hex: "B38B4D")) { onSelectScreen(.cuentasNauta) }.id(2)
-                                        MenuShortcutCard(iconName: "building.columns.fill", title: "Cuentas", themeColor: Color(hex: "B38B4D")) { onSelectScreen(.cuentasBanco) }.id(1)
-                                        MenuShortcutCard(iconName: "key.fill", title: "Claves", themeColor: Color(hex: "B38B4D")) { onSelectScreen(.misClaves) }.id(3)
-                                        MenuShortcutCard(iconName: "arrow.left.arrow.right", title: "Cambio", themeColor: Color(hex: "B38B4D")) { onSelectScreen(.tasaCambio) }.id(4)
+                                        // MenuShortcutCard(iconName: "person.crop.circle", title: "Contactos", themeColor: .appPrimary) { onSelectScreen(.contactos) }.id(0)
+                                        MenuShortcutCard(iconName: "wifi", title: "Nauta", themeColor: .appPrimary) { onSelectScreen(.cuentasNauta) }.id(2)
+                                        MenuShortcutCard(iconName: "building.columns.fill", title: "Cuentas", themeColor: .appPrimary) { onSelectScreen(.cuentasBanco) }.id(1)
+                                        MenuShortcutCard(iconName: "key.fill", title: "Claves", themeColor: .appPrimary) { onSelectScreen(.misClaves) }.id(3)
+                                        MenuShortcutCard(iconName: "arrow.left.arrow.right", title: "Cambio", themeColor: .appPrimary) { onSelectScreen(.tasaCambio) }.id(4)
                                     }
                                     .padding(.horizontal)
                                     .padding(.bottom, 10)
@@ -189,10 +224,19 @@ struct BankSelectionView: View {
                         if !favoritesManager.favoriteOperations.isEmpty {
                             ForEach(favoritesManager.favoriteOperations) { fav in
                                 if let bank = banks.first(where: { $0.id == fav.bankId }) {
-                                    OperationCard(operation: fav.operation, themeColor: bank.themeColor) {
+                                    let theme = useCustomFavoriteColor ? Color(hex: favoriteCustomColorHex) : bank.themeColor
+                                    OperationCard(operation: fav.operation, themeColor: theme) {
                                         CallService.shared.executeUSSD(code: fav.operation.ussdCode)
                                     }
                                     .padding(.horizontal)
+                                    .onDrag {
+                                        self.draggedItem = fav
+                                        return NSItemProvider(object: fav.id as NSString)
+                                    }
+                                    .onDrop(of: [.plainText], delegate: FavoriteDropDelegate(item: fav, items: Binding(
+                                        get: { favoritesManager.favoriteOperations },
+                                        set: { favoritesManager.favoriteOperations = $0 }
+                                    ), draggedItem: $draggedItem))
                                 }
                             }
                         }
@@ -203,7 +247,7 @@ struct BankSelectionView: View {
                                 Text("Agregar operación favorita")
                             }
                             .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(Color(hex: "B38B4D"))
+                            .foregroundColor(.appPrimary)
                             .frame(maxWidth: .infinity)
                             .padding()
                             .background(Color(UIColor.secondarySystemBackground))
@@ -295,38 +339,38 @@ struct SideMenuView: View {
                                 
                 // Link Items
                 VStack(alignment: .leading, spacing: 25) {
-                    MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, systemImageName: "star.fill", title: "Favoritos", isSelected: activeScreen == .home) {
+                    MenuRow(iconColor: .appPrimary, imageName: nil, systemImageName: "star.fill", title: "Favoritos", isSelected: activeScreen == .home) {
                         onSelectHome()
                     }
                     
                     Divider().padding(.trailing, 40)
                     
                     ForEach(banks) { bank in
-                        MenuRow(iconColor: Color(hex: "B38B4D"), imageName: "\(bank.id)/icon", systemImageName: nil, title: bank.shortName.uppercased(), isSelected: activeScreen == .bank && selectedBank?.id == bank.id) {
+                        MenuRow(iconColor: .appPrimary, imageName: bank.iconImg, systemImageName: nil, title: bank.shortName.uppercased(), isSelected: activeScreen == .bank && selectedBank?.id == bank.id) {
                             onSelectBank(bank)
                         }
                     }
                     
                     Divider().padding(.trailing, 40)
-                    // MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, systemImageName: "person.crop.circle", title: "Contactos", isSelected: activeScreen == .contactos) { onSelectScreen(.contactos) }
-                    MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, systemImageName: "wifi", title: "Cuentas de Nauta", isSelected: activeScreen == .cuentasNauta) { onSelectScreen(.cuentasNauta) }
-                    MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, systemImageName: "building.columns.fill", title: "Cuentas de Banco", isSelected: activeScreen == .cuentasBanco) { onSelectScreen(.cuentasBanco) }
+                    // MenuRow(iconColor: .appPrimary, imageName: nil, systemImageName: "person.crop.circle", title: "Contactos", isSelected: activeScreen == .contactos) { onSelectScreen(.contactos) }
+                    MenuRow(iconColor: .appPrimary, imageName: nil, systemImageName: "wifi", title: "Cuentas de Nauta", isSelected: activeScreen == .cuentasNauta) { onSelectScreen(.cuentasNauta) }
+                    MenuRow(iconColor: .appPrimary, imageName: nil, systemImageName: "building.columns.fill", title: "Cuentas de Banco", isSelected: activeScreen == .cuentasBanco) { onSelectScreen(.cuentasBanco) }
 
                     
                     Divider().padding(.trailing, 40)
-                    MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, systemImageName: "key.fill", title: "Mis Claves", isSelected: activeScreen == .misClaves) { onSelectScreen(.misClaves) }
+                    MenuRow(iconColor: .appPrimary, imageName: nil, systemImageName: "key.fill", title: "Mis Claves", isSelected: activeScreen == .misClaves) { onSelectScreen(.misClaves) }
 
                     Divider().padding(.trailing, 40)
-                    MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, systemImageName: "arrow.left.arrow.right", title: "Tasa de Cambio", isSelected: activeScreen == .tasaCambio) { onSelectScreen(.tasaCambio) }
+                    MenuRow(iconColor: .appPrimary, imageName: nil, systemImageName: "arrow.left.arrow.right", title: "Tasa de Cambio", isSelected: activeScreen == .tasaCambio) { onSelectScreen(.tasaCambio) }
 
                     Divider().padding(.trailing, 40)
-                    MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, systemImageName: "info.circle", title: "Información", isSelected: activeScreen == .info) {
+                    MenuRow(iconColor: .appPrimary, imageName: nil, systemImageName: "info.circle", title: "Información", isSelected: activeScreen == .info) {
                         onSelectHelp()
                     }
-                    MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, systemImageName: "questionmark.circle", title: "Ayuda", isSelected: activeScreen == .tutorial) {
+                    MenuRow(iconColor: .appPrimary, imageName: nil, systemImageName: "questionmark.circle", title: "Ayuda", isSelected: activeScreen == .tutorial) {
                         onSelectTutorial()
                     }
-                    MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, systemImageName: "gearshape", title: "Configuración", isSelected: activeScreen == .config) {
+                    MenuRow(iconColor: .appPrimary, imageName: nil, systemImageName: "gearshape", title: "Configuración", isSelected: activeScreen == .config) {
                         onSelectConfig()
                     }
 
@@ -364,7 +408,7 @@ struct HelpView: View {
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Contacto y Colaboración")
                                 .font(.headline)
-                                .foregroundColor(Color(hex: "B38B4D"))
+                                .foregroundColor(.appPrimary)
                             
                             Link(destination: URL(string: "https://www.linkedin.com/in/albertolicea00")!) {
                                 Label("Alberto Licea (Desarrollador)", systemImage: "person.circle")
@@ -390,7 +434,7 @@ struct HelpView: View {
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Créditos")
                                 .font(.headline)
-                                .foregroundColor(Color(hex: "B38B4D"))
+                                .foregroundColor(.appPrimary)
                             
                             Link(destination: URL(string: "https://www.linkedin.com/in/henrycruzmederos")!) {
                                 Label("Henry Cruz (Creador original)", systemImage: "link")
@@ -426,7 +470,7 @@ struct HelpSection: View {
         VStack(alignment: .leading, spacing: 10) {
             Text(title)
                 .font(.headline)
-                .foregroundColor(Color(hex: "B38B4D"))
+                .foregroundColor(.appPrimary)
             
             Text(content)
                 .font(.body)
@@ -491,7 +535,7 @@ struct TutorialView: View {
                     Text("Ayuda y Uso de la App")
                         .font(.title2)
                         .fontWeight(.bold)
-                        .foregroundColor(Color(hex: "B38B4D"))
+                        .foregroundColor(.appPrimary)
                         .padding(.bottom, 10)
                     
                     HelpSection(title: "Cómo realizar operaciones", content: "Para realizar una operación, selecciona el banco deseado en el inicio. Luego verás un listado de categorías. Toca cualquier operación y la app generará y ejecutará automáticamente el código USSD correspondiente en tu teléfono.")
@@ -522,9 +566,14 @@ struct ConfigView: View {
     @AppStorage("showNetworkStatus") private var showNetworkStatus = false
     @AppStorage("useBankNameInsteadOfIcon") private var useBankNameInsteadOfIcon = false
     @AppStorage("showBanksInFavorites") private var showBanksInFavorites = true
+    @AppStorage("useBanksAsLogin") private var useBanksAsLogin = false
     @AppStorage("showShortcutsInFavorites") private var showShortcutsInFavorites = true
     
+    @AppStorage("useCustomFavoriteColor") private var useCustomFavoriteColor = false
+    @AppStorage("favoriteCustomColorHex") private var favoriteCustomColorHex = "B38B4D"
+    
     @State private var pendingAuthEnabled: Bool = false
+    @State private var selectedFavoriteColor: Color = .appPrimary
     
     var body: some View {
         VStack(spacing: 0) {
@@ -539,12 +588,24 @@ struct ConfigView: View {
                     }
                     
                     Toggle("Modo Liquid Glass", isOn: $liquidGlass)
+                    
+                    Toggle("Usar color personalizado en favoritos", isOn: $useCustomFavoriteColor)
+                    if useCustomFavoriteColor {
+                        ColorPicker("Color de favoritos", selection: $selectedFavoriteColor)
+                            .onChange(of: selectedFavoriteColor) { newColor in
+                                if let hex = newColor.toHex() {
+                                    favoriteCustomColorHex = hex
+                                }
+                            }
+                    }
                 }
                 
                 Section(header: Text("General y Preferencias")) {
                     Toggle("Aviso de estado de conexión", isOn: $showNetworkStatus)
                     Toggle("Mostrar nombre de banco en vez de icono", isOn: $useBankNameInsteadOfIcon)
                     Toggle("Mostrar bancos en favoritos", isOn: $showBanksInFavorites)
+                    Toggle("Usar bancos favoritos como inicio de sesión", isOn: $useBanksAsLogin)
+                        .disabled(!showBanksInFavorites)
                     Toggle("Mostrar atajos de menú en favoritos", isOn: $showShortcutsInFavorites)
                 }
                 
@@ -592,6 +653,7 @@ struct ConfigView: View {
             }
             .onAppear {
                 pendingAuthEnabled = authEnabled
+                selectedFavoriteColor = Color(hex: favoriteCustomColorHex)
             }
         }
     }
@@ -610,7 +672,7 @@ struct UnderConstructionView: View {
                 Spacer()
                 Image(systemName: "hammer.fill")
                     .font(.system(size: 60))
-                    .foregroundColor(Color(hex: "B38B4D"))
+                    .foregroundColor(.appPrimary)
                 Text("En Construcción")
                     .font(.title)
                     .fontWeight(.bold)
@@ -697,7 +759,7 @@ struct AddFavoriteOperationView: View {
                                                 
                                                 if isFavorite {
                                                     Image(systemName: "star.fill")
-                                                        .foregroundColor(Color(hex: "B38B4D"))
+                                                        .foregroundColor(.appPrimary)
                                                 } else {
                                                     Image(systemName: "plus.circle")
                                                         .foregroundColor(.secondary)

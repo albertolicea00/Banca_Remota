@@ -4,13 +4,15 @@
       "id": "bpa",
       "name": "Banco Popular de Ahorro",
       "shortName": "BPA",
-      "logoName": "bpa/logo",
+      "logoImg": "bpa/logo",
+      "iconImg": "bpa/icon",
       "themeColorHex": "1E5F52",
+      "textColorHex": "FFFFFF",
       "categories": [
         {
           "name": "SESIÓN",
           "operations": [
-            { "id": "op_0", "name": "Autenticarse", "description": "Acceder al sistema", "iconName": "lock.shield", "ussdCode": "*444*40#" },
+            { "id": "op_0", "name": "Autenticarse", "description": "Acceder al sistema", "iconName": "lock.shield", "ussdCode": "*444*40#", "isLogin": true },
             { "id": "op_1", "name": "Cerrar sesión", "description": "Cerrar sesión iniciada", "iconName": "arrow.right.square", "ussdCode": "*444*70#" }
           ]
         },
@@ -70,13 +72,15 @@
       "id": "bandec",
       "name": "Banco de Crédito y Comercio",
       "shortName": "BANDEC",
-      "logoName": "bandec/logo",
+      "logoImg": "bandec/logo",
+      "iconImg": "bandec/icon",
       "themeColorHex": "5B2A1F",
+      "textColorHex": "FFFFFF",
       "categories": [
         {
           "name": "SESIÓN",
           "operations": [
-            { "id": "op_0", "name": "Autenticarse", "description": "Acceder al sistema", "iconName": "lock.shield", "ussdCode": "*444*40#" },
+            { "id": "op_0", "name": "Autenticarse", "description": "Acceder al sistema", "iconName": "lock.shield", "ussdCode": "*444*40#", "isLogin": true },
             { "id": "op_1", "name": "Cerrar sesión", "description": "Cerrar sesión iniciada", "iconName": "arrow.right.square", "ussdCode": "*444*70#" },
             { "id": "op_45", "name": "Cambio de tarjeta", "description": "Tarjeta RED a operar", "iconName": "creditcard.fill", "ussdCode": "*444*60#" }
           ]
@@ -137,13 +141,15 @@
       "id": "bm",
       "name": "Banco Metropolitano",
       "shortName": "BM",
-      "logoName": "bm/logo",
+      "logoImg": "bm/logo",
+      "iconImg": "bm/icon",
       "themeColorHex": "81D717",
+      "textColorHex": "000000",
       "categories": [
         {
           "name": "SESIÓN",
           "operations": [
-            { "id": "op_0", "name": "Autenticarse", "description": "Acceder al sistema", "iconName": "lock.shield", "ussdCode": "*444*40#" },
+            { "id": "op_0", "name": "Autenticarse", "description": "Acceder al sistema", "iconName": "lock.shield", "ussdCode": "*444*40#", "isLogin": true },
             { "id": "op_1", "name": "Cerrar sesión", "description": "Cerrar sesión iniciada", "iconName": "arrow.right.square", "ussdCode": "*444*70#" }
           ]
         },

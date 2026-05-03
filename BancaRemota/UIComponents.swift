@@ -35,7 +35,7 @@ struct TopNavBar: View {
                             .lineLimit(1)
                             .minimumScaleFactor(0.8)
                     } else {
-                        Image("\(bank.id)/icon")
+                        Image(bank.iconImg)
                             .resizable()
                             .renderingMode(.template)
                             .foregroundColor(.primary)
@@ -123,16 +123,16 @@ struct BankSelectionCard: View {
     var body: some View {
         Button(action: onTap) {
             VStack(spacing: 12) {
-                Image("\(bank.id)/icon")
+                Image(bank.iconImg)
                     .resizable()
                     .renderingMode(.template)
-                    .foregroundColor(.primary)
+                    .foregroundColor(bank.textColor)
                     .aspectRatio(contentMode: .fit)
                     .frame(height: 40)
                 
                 Text(bank.shortName)
                     .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(.primary)
+                    .foregroundColor(bank.textColor)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
