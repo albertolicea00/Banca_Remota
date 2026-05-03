@@ -436,6 +436,7 @@ struct ConfigView: View {
                     if authMethod != 0 {
                         Picker("Expirar Sesión", selection: $authExpiration) {
                             Text("Inmediato").tag(0)
+                            Text("En 30 segundos").tag(1)
                             Text("En 1 minuto").tag(1)
                             Text("En 5 minutos").tag(5)
                             Text("En 15 minutos").tag(15)
