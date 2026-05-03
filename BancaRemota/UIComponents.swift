@@ -176,3 +176,216 @@ struct MenuShortcutCard: View {
         .buttonStyle(PlainButtonStyle())
     }
 }
+
+// MARK: - Data Card (Copy to Clipboard)
+struct DataCard: View {
+    let title: String
+    let subtitle: String?
+    let value: String
+    let iconName: String
+    let backgroundColor: Color
+    var onEdit: (() -> Void)? = nil
+    var onDelete: (() -> Void)? = nil
+    
+    @State private var showCopied = false
+    
+    var body: some View {
+        Button(action: {
+            UIPasteboard.general.string = value
+            let generator = UIImpactFeedbackGenerator(style: .medium)
+            generator.impactOccurred()
+            withAnimation {
+                showCopied = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                withAnimation { showCopied = false }
+            }
+        }) {
+            HStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(backgroundColor.opacity(0.15))
+                        .frame(width: 50, height: 50)
+                    
+                    Image(systemName: iconName)
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(backgroundColor)
+                }
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title)
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.primary)
+                    
+                    if let subtitle = subtitle {
+                        Text(subtitle)
+                            .font(.system(size: 13))
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Text(value)
+                        .font(.system(size: 14, weight: .medium, design: .monospaced))
+                        .foregroundColor(backgroundColor)
+                        .padding(.top, 2)
+                }
+                
+                Spacer()
+                
+                if showCopied {
+                    Text("Copiado!")
+                        .font(.caption2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.green)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.green.opacity(0.1))
+                        .cornerRadius(8)
+                } else {
+                    HStack(spacing: 8) {
+                        if let onEdit = onEdit {
+                            Button(action: onEdit) {
+                                Image(systemName: "pencil")
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                        if let onDelete = onDelete {
+                            Button(action: onDelete) {
+                                Image(systemName: "trash")
+                                    .foregroundColor(.red)
+                            }
+                        }
+                    }
+                }
+            }
+            .padding()
+            .background(Color(UIColor.secondarySystemBackground))
+            .cornerRadius(16)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+// MARK: - Wallet Card
+struct WalletCard: View {
+    let account: BankAccount
+    var onEdit: (() -> Void)? = nil
+    var onDelete: (() -> Void)? = nil
+    
+    @State private var showCopied = false
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Header
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(account.label)
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.white.opacity(0.8))
+                    Text(account.group.isEmpty ? "Banco" : account.group)
+                        .font(.system(size: 10, weight: .medium))
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color.white.opacity(0.2))
+                        .cornerRadius(4)
+                        .foregroundColor(.white)
+                }
+                Spacer()
+                Image(systemName: "creditcard.fill")
+                    .font(.title3)
+                    .foregroundColor(.white.opacity(0.5))
+            }
+            .padding(.bottom, 30)
+            
+            Spacer()
+            
+            // Card Number
+            Text(maskCardNumber(account.cardNumber))
+                .font(.system(size: 20, weight: .bold, design: .monospaced))
+                .foregroundColor(.white)
+                .tracking(2)
+            
+            Spacer()
+            
+            // Footer
+            HStack(alignment: .bottom) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("TITULAR")
+                        .font(.system(size: 8, weight: .black))
+                        .foregroundColor(.white.opacity(0.5))
+                    Text(account.name.uppercased())
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.white)
+                }
+                
+                Spacer()
+                
+                HStack(spacing: 12) {
+                    if showCopied {
+                        Text("COPIADO")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(.green)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.white)
+                            .cornerRadius(6)
+                    } else {
+                        Button(action: {
+                            UIPasteboard.general.string = account.cardNumber
+                            let generator = UIImpactFeedbackGenerator(style: .medium)
+                            generator.impactOccurred()
+                            withAnimation { showCopied = true }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                withAnimation { showCopied = false }
+                            }
+                        }) {
+                            Image(systemName: "doc.on.doc.fill")
+                                .foregroundColor(.white.opacity(0.8))
+                        }
+                        
+                        Menu {
+                            if let onEdit = onEdit {
+                                Button(action: onEdit) {
+                                    Label("Editar", systemImage: "pencil")
+                                }
+                            }
+                            if let onDelete = onDelete {
+                                Button(role: .destructive, action: onDelete) {
+                                    Label("Eliminar", systemImage: "trash")
+                                }
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis.circle.fill")
+                                .font(.title3)
+                                .foregroundColor(.white.opacity(0.8))
+                        }
+                    }
+                }
+            }
+        }
+        .padding(24)
+        .frame(height: 200)
+        .background(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color(hex: account.colorHex),
+                            Color(hex: account.colorHex).opacity(0.7)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                )
+        )
+        .shadow(color: Color.black.opacity(0.3), radius: 10, x: 0, y: 5)
+    }
+    
+    private func maskCardNumber(_ number: String) -> String {
+        let last4 = number.suffix(4)
+        return "**** **** **** \(last4)"
+    }
+}

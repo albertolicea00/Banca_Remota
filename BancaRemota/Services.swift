@@ -118,3 +118,31 @@ class CallService {
         }
     }
 }
+
+// MARK: - User Data Service (CRUD)
+class UserDataManager: ObservableObject {
+    static let shared = UserDataManager()
+    
+    @Published var nautaAccounts: [NautaAccount] = [] { didSet { save() } }
+    @Published var bankAccounts: [BankAccount] = [] { didSet { save() } }
+    @Published var bills: [Bill] = [] { didSet { save() } }
+    @Published var userKeys: [UserKey] = [] { didSet { save() } }
+    
+    private init() {
+        load()
+    }
+    
+    private func save() {
+        if let encoded = try? JSONEncoder().encode(nautaAccounts) { UserDefaults.standard.set(encoded, forKey: "nautaAccounts") }
+        if let encoded = try? JSONEncoder().encode(bankAccounts) { UserDefaults.standard.set(encoded, forKey: "bankAccounts") }
+        if let encoded = try? JSONEncoder().encode(bills) { UserDefaults.standard.set(encoded, forKey: "bills") }
+        if let encoded = try? JSONEncoder().encode(userKeys) { UserDefaults.standard.set(encoded, forKey: "userKeys") }
+    }
+    
+    private func load() {
+        if let data = UserDefaults.standard.data(forKey: "nautaAccounts"), let decoded = try? JSONDecoder().decode([NautaAccount].self, from: data) { nautaAccounts = decoded }
+        if let data = UserDefaults.standard.data(forKey: "bankAccounts"), let decoded = try? JSONDecoder().decode([BankAccount].self, from: data) { bankAccounts = decoded }
+        if let data = UserDefaults.standard.data(forKey: "bills"), let decoded = try? JSONDecoder().decode([Bill].self, from: data) { bills = decoded }
+        if let data = UserDefaults.standard.data(forKey: "userKeys"), let decoded = try? JSONDecoder().decode([UserKey].self, from: data) { userKeys = decoded }
+    }
+}

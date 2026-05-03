@@ -7,11 +7,11 @@ enum ActiveScreen {
     case info
     case tutorial
     case config
-    case contactos
     case cuentasBanco
     case cuentasNauta
     case misClaves
     case tasaCambio
+    case facturas
 }
 
 // MARK: - Navigation Hub View
@@ -45,16 +45,16 @@ struct MainView: View {
                             selectedBank = nil
                             activeScreen = screen
                         }, onMenuTap: { withAnimation { isMenuOpen.toggle() } })
-                    case .contactos:
-                        UnderConstructionView(title: "Contactos", onMenuTap: { withAnimation { isMenuOpen.toggle() } })
                     case .cuentasNauta:
-                        UnderConstructionView(title: "Cuentas de Nauta", onMenuTap: { withAnimation { isMenuOpen.toggle() } })
+                        NautaListView(onMenuTap: { withAnimation { isMenuOpen.toggle() } })
                     case .cuentasBanco:
-                        UnderConstructionView(title: "Cuentas de Banco", onMenuTap: { withAnimation { isMenuOpen.toggle() } })
+                        BankAccountsListView(onMenuTap: { withAnimation { isMenuOpen.toggle() } })
                     case .misClaves:
-                        UnderConstructionView(title: "Mis Claves", onMenuTap: { withAnimation { isMenuOpen.toggle() } })
+                        KeysListView(onMenuTap: { withAnimation { isMenuOpen.toggle() } })
                     case .tasaCambio:
                         UnderConstructionView(title: "Tasa de Cambio", onMenuTap: { withAnimation { isMenuOpen.toggle() } })
+                    case .facturas:
+                        BillsListView(onMenuTap: { withAnimation { isMenuOpen.toggle() } })
                     }
                 } else {
                     ProgressView("Loading Configuration...")
@@ -204,7 +204,6 @@ struct BankSelectionView: View {
                             ScrollViewReader { proxy in
                                 ScrollView(.horizontal, showsIndicators: false) {
                                     HStack(spacing: 20) {
-                                        // MenuShortcutCard(iconName: "person.crop.circle", title: "Contactos", themeColor: .appPrimary) { onSelectScreen(.contactos) }.id(0)
                                         MenuShortcutCard(iconName: "wifi", title: "Nauta", themeColor: .appPrimary) { onSelectScreen(.cuentasNauta) }.id(2)
                                         MenuShortcutCard(iconName: "building.columns.fill", title: "Cuentas", themeColor: .appPrimary) { onSelectScreen(.cuentasBanco) }.id(1)
                                         MenuShortcutCard(iconName: "key.fill", title: "Claves", themeColor: .appPrimary) { onSelectScreen(.misClaves) }.id(3)
@@ -361,7 +360,7 @@ struct SideMenuView: View {
                     }
                     
                     Divider().padding(.trailing, 40)
-                    // MenuRow(iconColor: .appPrimary, imageName: nil, systemImageName: "person.crop.circle", title: "Contactos", isSelected: activeScreen == .contactos) { onSelectScreen(.contactos) }
+                    MenuRow(iconColor: .appPrimary, imageName: nil, systemImageName: "doc.text.fill", title: "Facturas", isSelected: activeScreen == .facturas) { onSelectScreen(.facturas) }
                     MenuRow(iconColor: .appPrimary, imageName: nil, systemImageName: "wifi", title: "Cuentas de Nauta", isSelected: activeScreen == .cuentasNauta) { onSelectScreen(.cuentasNauta) }
                     MenuRow(iconColor: .appPrimary, imageName: nil, systemImageName: "building.columns.fill", title: "Cuentas de Banco", isSelected: activeScreen == .cuentasBanco) { onSelectScreen(.cuentasBanco) }
 
@@ -836,6 +835,518 @@ struct AddFavoriteOperationView: View {
             .navigationBarItems(trailing: Button("Cerrar") {
                 presentationMode.wrappedValue.dismiss()
             })
+        }
+    }
+}
+
+// MARK: - Nauta Accounts List
+struct NautaListView: View {
+    let onMenuTap: () -> Void
+    @ObservedObject var userData = UserDataManager.shared
+    @State private var showingAddAccount = false
+    @State private var accountToEdit: NautaAccount?
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            TopNavBar(themeColor: .appPrimary, onMenuTap: onMenuTap, title: "Cuentas Nauta")
+            
+            ScrollView {
+                VStack(spacing: 24) {
+                    if userData.nautaAccounts.isEmpty {
+                        EmptyStateView(title: "Sin cuentas Nauta", message: "Agrega tus cuentas para tenerlas a mano.", iconName: "wifi")
+                    } else {
+                        let grouped = Dictionary(grouping: userData.nautaAccounts, by: { $0.group.isEmpty ? "General" : $0.group })
+                        
+                        ForEach(grouped.keys.sorted(), id: \.self) { groupName in
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text(groupName.uppercased())
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundColor(.secondary)
+                                    .padding(.horizontal, 4)
+                                
+                                ForEach(grouped[groupName] ?? []) { account in
+                                    DataCard(
+                                        title: account.label,
+                                        subtitle: account.type,
+                                        value: account.account,
+                                        iconName: "person.crop.circle",
+                                        backgroundColor: .appPrimary,
+                                        onEdit: { accountToEdit = account },
+                                        onDelete: { userData.nautaAccounts.removeAll { $0.id == account.id } }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                .padding()
+            }
+            .background(Color(UIColor.systemGroupedBackground))
+            
+            Button(action: { showingAddAccount = true }) {
+                Label("Nueva Cuenta Nauta", systemImage: "plus.circle.fill")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.appPrimary)
+                    .cornerRadius(12)
+                    .padding()
+            }
+        }
+        .sheet(isPresented: $showingAddAccount) {
+            AddNautaAccountView()
+        }
+        .sheet(item: $accountToEdit) { account in
+            AddNautaAccountView(accountToEdit: account)
+        }
+    }
+}
+
+// MARK: - Bank Accounts List
+struct BankAccountsListView: View {
+    let onMenuTap: () -> Void
+    @ObservedObject var userData = UserDataManager.shared
+    @State private var showingAddAccount = false
+    @State private var accountToEdit: BankAccount?
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            TopNavBar(themeColor: .appPrimary, onMenuTap: onMenuTap, title: "Cuentas de Banco")
+            
+            ScrollView {
+                VStack(spacing: 24) {
+                    if userData.bankAccounts.isEmpty {
+                        EmptyStateView(title: "Sin cuentas bancarias", message: "Guarda tus números de tarjeta y móviles aquí.", iconName: "building.columns")
+                    } else {
+                        let grouped = Dictionary(grouping: userData.bankAccounts, by: { $0.group.isEmpty ? "Mis Tarjetas" : $0.group })
+                        
+                        ForEach(grouped.keys.sorted(), id: \.self) { groupName in
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text(groupName.uppercased())
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundColor(.secondary)
+                                    .padding(.horizontal, 4)
+                                
+                                ForEach(grouped[groupName] ?? []) { account in
+                                    VStack(alignment: .leading, spacing: 12) {
+                                        WalletCard(
+                                            account: account,
+                                            onEdit: { accountToEdit = account },
+                                            onDelete: { userData.bankAccounts.removeAll { $0.id == account.id } }
+                                        )
+                                        
+                                        if !account.mobile.isEmpty {
+                                            DataCard(
+                                                title: "Móvil asociado",
+                                                subtitle: nil,
+                                                value: account.mobile,
+                                                iconName: "iphone",
+                                                backgroundColor: .green
+                                            )
+                                            .padding(.horizontal, 10)
+                                            .scaleEffect(0.98)
+                                        }
+                                    }
+                                    .padding(.bottom, 10)
+                                }
+                            }
+                        }
+                    }
+                }
+                .padding()
+            }
+            .background(Color(UIColor.systemGroupedBackground))
+            
+            Button(action: { showingAddAccount = true }) {
+                Label("Nueva Cuenta Bancaria", systemImage: "plus.circle.fill")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue)
+                    .cornerRadius(12)
+                    .padding()
+            }
+        }
+        .sheet(isPresented: $showingAddAccount) {
+            AddBankAccountView()
+        }
+        .sheet(item: $accountToEdit) { account in
+            AddBankAccountView(accountToEdit: account)
+        }
+    }
+}
+
+// MARK: - Bills List
+struct BillsListView: View {
+    let onMenuTap: () -> Void
+    @ObservedObject var userData = UserDataManager.shared
+    @State private var showingAddBill = false
+    @State private var billToEdit: Bill?
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            TopNavBar(themeColor: .appPrimary, onMenuTap: onMenuTap, title: "Mis Facturas")
+            
+            ScrollView {
+                VStack(spacing: 24) {
+                    if userData.bills.isEmpty {
+                        EmptyStateView(title: "Sin facturas", message: "Guarda tus números de factura de servicios.", iconName: "doc.text")
+                    } else {
+                        let grouped = Dictionary(grouping: userData.bills, by: { $0.group.isEmpty ? "General" : $0.group })
+                        
+                        ForEach(grouped.keys.sorted(), id: \.self) { groupName in
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text(groupName.uppercased())
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundColor(.secondary)
+                                    .padding(.horizontal, 4)
+                                
+                                ForEach(grouped[groupName] ?? []) { bill in
+                                    DataCard(
+                                        title: bill.label,
+                                        subtitle: bill.type.rawValue,
+                                        value: bill.billNumber,
+                                        iconName: bill.type.iconName,
+                                        backgroundColor: .orange,
+                                        onEdit: { billToEdit = bill },
+                                        onDelete: { userData.bills.removeAll { $0.id == bill.id } }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                .padding()
+            }
+            .background(Color(UIColor.systemGroupedBackground))
+            
+            Button(action: { showingAddBill = true }) {
+                Label("Nueva Factura", systemImage: "plus.circle.fill")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.orange)
+                    .cornerRadius(12)
+                    .padding()
+            }
+        }
+        .sheet(isPresented: $showingAddBill) {
+            AddBillView()
+        }
+        .sheet(item: $billToEdit) { bill in
+            AddBillView(billToEdit: bill)
+        }
+    }
+}
+
+// MARK: - Keys List
+struct KeysListView: View {
+    let onMenuTap: () -> Void
+    @ObservedObject var userData = UserDataManager.shared
+    @State private var showingAddKey = false
+    @State private var keyToEdit: UserKey?
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            TopNavBar(themeColor: .appPrimary, onMenuTap: onMenuTap, title: "Mis Claves")
+            
+            ScrollView {
+                VStack(spacing: 24) {
+                    if userData.userKeys.isEmpty {
+                        EmptyStateView(title: "Sin claves", message: "Guarda tus PINs y contraseñas de forma segura.", iconName: "key.fill")
+                    } else {
+                        let grouped = Dictionary(grouping: userData.userKeys, by: { $0.group.isEmpty ? "General" : $0.group })
+                        
+                        ForEach(grouped.keys.sorted(), id: \.self) { groupName in
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text(groupName.uppercased())
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundColor(.secondary)
+                                    .padding(.horizontal, 4)
+                                
+                                ForEach(grouped[groupName] ?? []) { key in
+                                    DataCard(
+                                        title: key.label,
+                                        subtitle: key.category.rawValue,
+                                        value: key.value,
+                                        iconName: key.category.iconName,
+                                        backgroundColor: .purple,
+                                        onEdit: { keyToEdit = key },
+                                        onDelete: { userData.userKeys.removeAll { $0.id == key.id } }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                .padding()
+            }
+            .background(Color(UIColor.systemGroupedBackground))
+            
+            Button(action: { showingAddKey = true }) {
+                Label("Nueva Clave", systemImage: "plus.circle.fill")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.purple)
+                    .cornerRadius(12)
+                    .padding()
+            }
+        }
+        .sheet(isPresented: $showingAddKey) {
+            AddKeyView()
+        }
+        .sheet(item: $keyToEdit) { key in
+            AddKeyView(keyToEdit: key)
+        }
+    }
+}
+
+// MARK: - Empty State Helper
+struct EmptyStateView: View {
+    let title: String
+    let message: String
+    let iconName: String
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Spacer().frame(height: 50)
+            Image(systemName: iconName)
+                .font(.system(size: 60))
+                .foregroundColor(.gray.opacity(0.3))
+            Text(title)
+                .font(.headline)
+            Text(message)
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 40)
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+// MARK: - Add/Edit Nauta View
+struct AddNautaAccountView: View {
+    @Environment(\.presentationMode) var presentationMode
+    var accountToEdit: NautaAccount? = nil
+    
+    @State private var label = ""
+    @State private var account = ""
+    @State private var type = "Nacional"
+    @State private var group = ""
+    
+    var body: some View {
+        NavigationView {
+            Form {
+                Section(header: Text("Información de la Cuenta")) {
+                    TextField("Etiqueta (ej: Mi Cuenta)", text: $label)
+                    TextField("Usuario / Cuenta", text: $account)
+                    Picker("Tipo", selection: $type) {
+                        Text("Nacional").tag("Nacional")
+                        Text("Internacional").tag("Internacional")
+                    }
+                    .pickerStyle(SegmentedPickerStyle())
+                }
+                
+                Section(header: Text("Organización"), footer: Text("Agrupa tus cuentas para encontrarlas más rápido (ej: Trabajo, Casa).")) {
+                    TextField("Nombre del Grupo (opcional)", text: $group)
+                }
+            }
+            .navigationTitle(accountToEdit == nil ? "Nueva Cuenta" : "Editar Cuenta")
+            .navigationBarItems(
+                leading: Button("Cancelar") { presentationMode.wrappedValue.dismiss() },
+                trailing: Button("Guardar") {
+                    let newAccount = NautaAccount(id: accountToEdit?.id ?? UUID(), type: type, account: account, label: label, group: group)
+                    if let index = UserDataManager.shared.nautaAccounts.firstIndex(where: { $0.id == accountToEdit?.id }) {
+                        UserDataManager.shared.nautaAccounts[index] = newAccount
+                    } else {
+                        UserDataManager.shared.nautaAccounts.append(newAccount)
+                    }
+                    presentationMode.wrappedValue.dismiss()
+                }
+                .disabled(label.isEmpty || account.isEmpty)
+            )
+            .onAppear {
+                if let edit = accountToEdit {
+                    label = edit.label
+                    account = edit.account
+                    type = edit.type
+                    group = edit.group
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Add/Edit Bank Account View
+struct AddBankAccountView: View {
+    @Environment(\.presentationMode) var presentationMode
+    var accountToEdit: BankAccount? = nil
+    
+    @State private var label = ""
+    @State private var name = ""
+    @State private var cardNumber = ""
+    @State private var mobile = ""
+    @State private var group = ""
+    @State private var selectedColor: Color = .black
+    
+    var body: some View {
+        NavigationView {
+            Form {
+                Section(header: Text("Información Bancaria")) {
+                    TextField("Etiqueta (ej: Mi Tarjeta BPA)", text: $label)
+                    TextField("Nombre del Titular", text: $name)
+                    TextField("Número de Tarjeta", text: $cardNumber)
+                        .keyboardType(.numberPad)
+                    TextField("Móvil asociado (opcional)", text: $mobile)
+                        .keyboardType(.phonePad)
+                }
+                
+                Section(header: Text("Apariencia")) {
+                    ColorPicker("Color de la Tarjeta", selection: $selectedColor)
+                }
+                
+                Section(header: Text("Organización")) {
+                    TextField("Nombre del Grupo (ej: Ahorros, Negocio)", text: $group)
+                }
+            }
+            .navigationTitle(accountToEdit == nil ? "Nueva Tarjeta" : "Editar Tarjeta")
+            .navigationBarItems(
+                leading: Button("Cancelar") { presentationMode.wrappedValue.dismiss() },
+                trailing: Button("Guardar") {
+                    let colorHex = selectedColor.toHex() ?? "1A1A1A"
+                    let newAccount = BankAccount(id: accountToEdit?.id ?? UUID(), name: name, cardNumber: cardNumber, mobile: mobile, label: label, group: group, colorHex: colorHex)
+                    if let index = UserDataManager.shared.bankAccounts.firstIndex(where: { $0.id == accountToEdit?.id }) {
+                        UserDataManager.shared.bankAccounts[index] = newAccount
+                    } else {
+                        UserDataManager.shared.bankAccounts.append(newAccount)
+                    }
+                    presentationMode.wrappedValue.dismiss()
+                }
+                .disabled(label.isEmpty || cardNumber.isEmpty)
+            )
+            .onAppear {
+                if let edit = accountToEdit {
+                    label = edit.label
+                    name = edit.name
+                    cardNumber = edit.cardNumber
+                    mobile = edit.mobile
+                    group = edit.group
+                    selectedColor = Color(hex: edit.colorHex)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Add/Edit Bill View
+struct AddBillView: View {
+    @Environment(\.presentationMode) var presentationMode
+    var billToEdit: Bill? = nil
+    
+    @State private var label = ""
+    @State private var billNumber = ""
+    @State private var type: BillType = .electricity
+    @State private var group = ""
+    
+    var body: some View {
+        NavigationView {
+            Form {
+                Section(header: Text("Detalles de Factura")) {
+                    TextField("Etiqueta (ej: Casa de la Playa)", text: $label)
+                    TextField("Número de Factura", text: $billNumber)
+                        .keyboardType(.numberPad)
+                    Picker("Tipo de Servicio", selection: $type) {
+                        ForEach(BillType.allCases, id: \.self) { type in
+                            Text(type.rawValue).tag(type)
+                        }
+                    }
+                }
+                
+                Section(header: Text("Organización")) {
+                    TextField("Nombre del Grupo (ej: Casas Familia)", text: $group)
+                }
+            }
+            .navigationTitle(billToEdit == nil ? "Nueva Factura" : "Editar Factura")
+            .navigationBarItems(
+                leading: Button("Cancelar") { presentationMode.wrappedValue.dismiss() },
+                trailing: Button("Guardar") {
+                    let newBill = Bill(id: billToEdit?.id ?? UUID(), label: label, billNumber: billNumber, type: type, group: group)
+                    if let index = UserDataManager.shared.bills.firstIndex(where: { $0.id == billToEdit?.id }) {
+                        UserDataManager.shared.bills[index] = newBill
+                    } else {
+                        UserDataManager.shared.bills.append(newBill)
+                    }
+                    presentationMode.wrappedValue.dismiss()
+                }
+                .disabled(label.isEmpty || billNumber.isEmpty)
+            )
+            .onAppear {
+                if let edit = billToEdit {
+                    label = edit.label
+                    billNumber = edit.billNumber
+                    type = edit.type
+                    group = edit.group
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Add/Edit Key View
+struct AddKeyView: View {
+    @Environment(\.presentationMode) var presentationMode
+    var keyToEdit: UserKey? = nil
+    
+    @State private var label = ""
+    @State private var value = ""
+    @State private var category: KeyCategory = .bank
+    @State private var group = ""
+    
+    var body: some View {
+        NavigationView {
+            Form {
+                Section(header: Text("Detalles de la Clave")) {
+                    TextField("Etiqueta (ej: PIN BPA)", text: $label)
+                    TextField("Clave / Contraseña", text: $value)
+                    Picker("Categoría", selection: $category) {
+                        ForEach(KeyCategory.allCases, id: \.self) { cat in
+                            Text(cat.rawValue).tag(cat)
+                        }
+                    }
+                }
+                
+                Section(header: Text("Organización")) {
+                    TextField("Nombre del Grupo (opcional)", text: $group)
+                }
+            }
+            .navigationTitle(keyToEdit == nil ? "Nueva Clave" : "Editar Clave")
+            .navigationBarItems(
+                leading: Button("Cancelar") { presentationMode.wrappedValue.dismiss() },
+                trailing: Button("Guardar") {
+                    let newKey = UserKey(id: keyToEdit?.id ?? UUID(), label: label, value: value, category: category, group: group)
+                    if let index = UserDataManager.shared.userKeys.firstIndex(where: { $0.id == keyToEdit?.id }) {
+                        UserDataManager.shared.userKeys[index] = newKey
+                    } else {
+                        UserDataManager.shared.userKeys.append(newKey)
+                    }
+                    presentationMode.wrappedValue.dismiss()
+                }
+                .disabled(label.isEmpty || value.isEmpty)
+            )
+            .onAppear {
+                if let edit = keyToEdit {
+                    label = edit.label
+                    value = edit.value
+                    category = edit.category
+                    group = edit.group
+                }
+            }
         }
     }
 }

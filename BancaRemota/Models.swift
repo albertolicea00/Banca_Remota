@@ -143,3 +143,71 @@ class FavoritesManager: ObservableObject {
         favoriteOperations = defaults
     }
 }
+
+// MARK: - Nauta Account
+struct NautaAccount: Codable, Identifiable, Equatable {
+    var id = UUID()
+    var type: String // "Nacional" or "Internacional"
+    var account: String
+    var label: String
+    var group: String = ""
+}
+
+// MARK: - Bank Account
+struct BankAccount: Codable, Identifiable, Equatable {
+    var id = UUID()
+    var name: String
+    var cardNumber: String
+    var mobile: String
+    var label: String
+    var group: String = ""
+    var colorHex: String = "1A1A1A" // Default dark color
+}
+
+// MARK: - Bill
+struct Bill: Codable, Identifiable, Equatable {
+    var id = UUID()
+    var label: String
+    var billNumber: String
+    var type: BillType
+    var group: String = ""
+}
+
+enum BillType: String, Codable, CaseIterable {
+    case electricity = "Electricidad"
+    case water = "Agua"
+    case gas = "Gas"
+    case telephone = "Teléfono"
+    
+    var iconName: String {
+        switch self {
+        case .electricity: return "bolt"
+        case .water: return "drop"
+        case .gas: return "flame"
+        case .telephone: return "phone"
+        }
+    }
+}
+
+// MARK: - User Key (Passwords/PINs)
+struct UserKey: Codable, Identifiable, Equatable {
+    var id = UUID()
+    var label: String
+    var value: String
+    var category: KeyCategory
+    var group: String = ""
+}
+
+enum KeyCategory: String, Codable, CaseIterable {
+    case bank = "Banco"
+    case nauta = "Nauta"
+    case other = "Otros"
+    
+    var iconName: String {
+        switch self {
+        case .bank: return "creditcard.and.123"
+        case .nauta: return "wifi"
+        case .other: return "key.fill"
+        }
+    }
+}
