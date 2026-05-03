@@ -149,7 +149,7 @@ struct BankSelectionView: View {
     
     @AppStorage("showBanksInFavorites") private var showBanksInFavorites = true
     @AppStorage("useBanksAsLogin") private var useBanksAsLogin = true
-    @AppStorage("showShortcutsInFavorites") private var showShortcutsInFavorites = true
+    @AppStorage("showShortcutsInFavorites") private var showShortcutsInFavorites = false
     @AppStorage("useCustomFavoriteColor") private var useCustomFavoriteColor = true
     @AppStorage("favoriteCustomColorHex") private var favoriteCustomColorHex = "B38B4D"
     @ObservedObject private var favoritesManager = FavoritesManager.shared
@@ -566,7 +566,7 @@ struct ConfigView: View {
     @AppStorage("lastAuthTime") private var lastAuthTime: Double = 0
     
     @AppStorage("showNetworkStatus") private var showNetworkStatus = false
-    @AppStorage("useBankNameInsteadOfIcon") private var useBankNameInsteadOfIcon = false
+    @AppStorage("useBankNameInsteadOfIcon") private var useBankNameInsteadOfIcon = true
     @AppStorage("showBanksInFavorites") private var showBanksInFavorites = true
     @AppStorage("useBanksAsLogin") private var useBanksAsLogin = true
     @AppStorage("showShortcutsInFavorites") private var showShortcutsInFavorites = true
@@ -576,6 +576,10 @@ struct ConfigView: View {
     
     @State private var pendingAuthEnabled: Bool = false
     @State private var selectedFavoriteColor: Color = .appPrimary
+    
+    @State private var showingResetAlert = false
+    @State private var isResetting = false
+    @State private var showResetSuccess = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -607,18 +611,27 @@ struct ConfigView: View {
                     Toggle("Mostrar nombre de banco en vez de icono", isOn: $useBankNameInsteadOfIcon)
                     Toggle("Mostrar atajos de menú en favoritos", isOn: $showShortcutsInFavorites)
                     Toggle("Mostrar bancos en favoritos", isOn: $showBanksInFavorites)
-                    if showBanksInFavorites {
-                        Toggle("Usar bancos favoritos como inicio de sesión", isOn: $useBanksAsLogin)
-                    }
+                    Toggle("Usar bancos en favoritos como inicio de sesión", isOn: $useBanksAsLogin)
+                        .disabled(true)
                 }
                 
                 Section(header: Text("Gestión de Datos")) {
                     Button(action: {
-                        FavoritesManager.shared.loadDefaults(from: banks)
+                        showingResetAlert = true
                     }) {
-                        Label("Cargar Favoritos por Defecto", systemImage: "arrow.counterclockwise.circle")
-                            .foregroundColor(.appPrimary)
+                        HStack {
+                            Label("Cargar Favoritos por Defecto", systemImage: "arrow.counterclockwise.circle")
+                            Spacer()
+                            if isResetting {
+                                ProgressView()
+                            } else if showResetSuccess {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
+                            }
+                        }
+                        .foregroundColor(.appPrimary)
                     }
+                    .disabled(isResetting)
                 }
                 
                 Section(header: Text("Seguridad y Autenticación"), footer: Text("Protege el acceso a la aplicación usando la seguridad nativa de tu dispositivo (Face ID, Touch ID o Código).")) {
@@ -634,6 +647,16 @@ struct ConfigView: View {
                         }
                     }
                 }
+            }
+            .alert(isPresented: $showingResetAlert) {
+                Alert(
+                    title: Text("¿Restablecer favoritos?"),
+                    message: Text("Se perderán los favoritos actuales y se reemplazarán por la distribución por defecto."),
+                    primaryButton: .destructive(Text("Restablecer")) {
+                        resetFavorites()
+                    },
+                    secondaryButton: .cancel(Text("Cancelar"))
+                )
             }
             .onChange(of: pendingAuthEnabled) { newValue in
                 guard newValue != authEnabled else { return }
@@ -666,6 +689,22 @@ struct ConfigView: View {
             .onAppear {
                 pendingAuthEnabled = authEnabled
                 selectedFavoriteColor = Color(hex: favoriteCustomColorHex)
+            }
+        }
+    }
+    
+    private func resetFavorites() {
+        isResetting = true
+        
+        // Simulate short loading
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            FavoritesManager.shared.loadDefaults(from: banks)
+            isResetting = false
+            showResetSuccess = true
+            
+            // Hide success checkmark after 2 seconds
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                showResetSuccess = false
             }
         }
     }
