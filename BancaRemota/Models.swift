@@ -38,6 +38,7 @@ struct BankOperation: Codable, Identifiable {
     let iconName: String
     let ussdCode: String
     var isLogin: Bool?
+    var isDefaultFavorite: Bool?
 }
 
 // MARK: - Color Hex Initialization Extension
@@ -126,5 +127,19 @@ class FavoritesManager: ObservableObject {
            let decoded = try? JSONDecoder().decode([FavoriteOperation].self, from: data) {
             favoriteOperations = decoded
         }
+    }
+    
+    func loadDefaults(from banks: [Bank]) {
+        var defaults: [FavoriteOperation] = []
+        for bank in banks {
+            for category in bank.categories {
+                for operation in category.operations {
+                    if operation.isDefaultFavorite == true {
+                        defaults.append(FavoriteOperation(bankId: bank.id, operation: operation))
+                    }
+                }
+            }
+        }
+        favoriteOperations = defaults
     }
 }

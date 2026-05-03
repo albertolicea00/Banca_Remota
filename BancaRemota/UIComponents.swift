@@ -12,12 +12,14 @@ struct TopNavBar: View {
     @AppStorage("useBankNameInsteadOfIcon") private var useBankNameInsteadOfIcon = false
     
     var body: some View {
+        let contentColor = bank?.textColor ?? .primary
+        
         HStack {
             if showMenuBtn {
                 Button(action: onMenuTap) {
                     Image(systemName: "line.horizontal.3")
                         .font(.title2)
-                        .foregroundColor(.primary)
+                        .foregroundColor(contentColor)
                 }
             } else {
                 Spacer().frame(width: 30) // placeholder
@@ -31,14 +33,14 @@ struct TopNavBar: View {
                     if useBankNameInsteadOfIcon {
                         Text(bank.name)
                             .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.primary)
+                            .foregroundColor(contentColor)
                             .lineLimit(1)
                             .minimumScaleFactor(0.8)
                     } else {
                         Image(bank.iconImg)
                             .resizable()
                             .renderingMode(.template)
-                            .foregroundColor(.primary)
+                            .foregroundColor(contentColor)
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 40, height: 40)
                     }
@@ -49,7 +51,7 @@ struct TopNavBar: View {
                 } else if let title = title {
                     Text(title)
                         .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(.primary)
+                        .foregroundColor(contentColor)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
                 }
@@ -78,6 +80,7 @@ struct TopNavBar: View {
 struct OperationCard: View {
     let operation: BankOperation
     let themeColor: Color
+    let textColor: Color
     let onTap: () -> Void
     
     var body: some View {
@@ -103,7 +106,7 @@ struct OperationCard: View {
                     
                     Image(systemName: operation.iconName)
                         .font(.system(size: 20))
-                        .foregroundColor(.primary)
+                        .foregroundColor(textColor)
                 }
             }
             .padding()

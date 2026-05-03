@@ -32,7 +32,7 @@ struct MainView: View {
                     case .tutorial:
                         TutorialView(onMenuTap: { withAnimation { isMenuOpen.toggle() } })
                     case .config:
-                        ConfigView(onMenuTap: { withAnimation { isMenuOpen.toggle() } })
+                        ConfigView(banks: config.banks, onMenuTap: { withAnimation { isMenuOpen.toggle() } })
                     case .bank:
                         if let bank = selectedBank {
                             OperationsListView(bank: bank, allBanks: config.banks, onMenuTap: { withAnimation { isMenuOpen.toggle() } })
@@ -148,9 +148,9 @@ struct BankSelectionView: View {
     let onMenuTap: () -> Void
     
     @AppStorage("showBanksInFavorites") private var showBanksInFavorites = true
-    @AppStorage("useBanksAsLogin") private var useBanksAsLogin = false
+    @AppStorage("useBanksAsLogin") private var useBanksAsLogin = true
     @AppStorage("showShortcutsInFavorites") private var showShortcutsInFavorites = true
-    @AppStorage("useCustomFavoriteColor") private var useCustomFavoriteColor = false
+    @AppStorage("useCustomFavoriteColor") private var useCustomFavoriteColor = true
     @AppStorage("favoriteCustomColorHex") private var favoriteCustomColorHex = "B38B4D"
     @ObservedObject private var favoritesManager = FavoritesManager.shared
     @State private var isShowingAddFavorite = false
@@ -225,7 +225,8 @@ struct BankSelectionView: View {
                             ForEach(favoritesManager.favoriteOperations) { fav in
                                 if let bank = banks.first(where: { $0.id == fav.bankId }) {
                                     let theme = useCustomFavoriteColor ? Color(hex: favoriteCustomColorHex) : bank.themeColor
-                                    OperationCard(operation: fav.operation, themeColor: theme) {
+                                    let textColor = useCustomFavoriteColor ? .white : bank.textColor
+                                    OperationCard(operation: fav.operation, themeColor: theme, textColor: textColor) {
                                         CallService.shared.executeUSSD(code: fav.operation.ussdCode)
                                     }
                                     .padding(.horizontal)
@@ -293,7 +294,7 @@ struct OperationsListView: View {
                                     .padding(.horizontal, 4)
                                 
                                 ForEach(category.operations) { operation in
-                                    OperationCard(operation: operation, themeColor: bank.themeColor) {
+                                    OperationCard(operation: operation, themeColor: bank.themeColor, textColor: bank.textColor) {
                                         // Execute USSD trigger
                                         CallService.shared.executeUSSD(code: operation.ussdCode)
                                     }
@@ -555,6 +556,7 @@ struct TutorialView: View {
 
 // MARK: - Config View
 struct ConfigView: View {
+    let banks: [Bank]
     let onMenuTap: () -> Void
     
     @AppStorage("darkModePreference") private var darkMode: Int = 0 // 0 = Default, 1 = Light, 2 = Dark
@@ -566,10 +568,10 @@ struct ConfigView: View {
     @AppStorage("showNetworkStatus") private var showNetworkStatus = false
     @AppStorage("useBankNameInsteadOfIcon") private var useBankNameInsteadOfIcon = false
     @AppStorage("showBanksInFavorites") private var showBanksInFavorites = true
-    @AppStorage("useBanksAsLogin") private var useBanksAsLogin = false
+    @AppStorage("useBanksAsLogin") private var useBanksAsLogin = true
     @AppStorage("showShortcutsInFavorites") private var showShortcutsInFavorites = true
     
-    @AppStorage("useCustomFavoriteColor") private var useCustomFavoriteColor = false
+    @AppStorage("useCustomFavoriteColor") private var useCustomFavoriteColor = true
     @AppStorage("favoriteCustomColorHex") private var favoriteCustomColorHex = "B38B4D"
     
     @State private var pendingAuthEnabled: Bool = false
@@ -603,10 +605,20 @@ struct ConfigView: View {
                 Section(header: Text("General y Preferencias")) {
                     Toggle("Aviso de estado de conexión", isOn: $showNetworkStatus)
                     Toggle("Mostrar nombre de banco en vez de icono", isOn: $useBankNameInsteadOfIcon)
-                    Toggle("Mostrar bancos en favoritos", isOn: $showBanksInFavorites)
-                    Toggle("Usar bancos favoritos como inicio de sesión", isOn: $useBanksAsLogin)
-                        .disabled(!showBanksInFavorites)
                     Toggle("Mostrar atajos de menú en favoritos", isOn: $showShortcutsInFavorites)
+                    Toggle("Mostrar bancos en favoritos", isOn: $showBanksInFavorites)
+                    if showBanksInFavorites {
+                        Toggle("Usar bancos favoritos como inicio de sesión", isOn: $useBanksAsLogin)
+                    }
+                }
+                
+                Section(header: Text("Gestión de Datos")) {
+                    Button(action: {
+                        FavoritesManager.shared.loadDefaults(from: banks)
+                    }) {
+                        Label("Cargar Favoritos por Defecto", systemImage: "arrow.counterclockwise.circle")
+                            .foregroundColor(.appPrimary)
+                    }
                 }
                 
                 Section(header: Text("Seguridad y Autenticación"), footer: Text("Protege el acceso a la aplicación usando la seguridad nativa de tu dispositivo (Face ID, Touch ID o Código).")) {
