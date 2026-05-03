@@ -61,6 +61,7 @@ struct MainView: View {
                 SideMenuView(
                     banks: config?.banks ?? [],
                     selectedBank: selectedBank,
+                    activeScreen: activeScreen,
                     onSelectHome: {
                         selectedBank = nil
                         activeScreen = .home
@@ -101,7 +102,7 @@ struct BankSelectionView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            TopNavBar(themeColor: Color(UIColor.systemBackground), onMenuTap: onMenuTap)
+            TopNavBar(themeColor: Color(UIColor.systemBackground), onMenuTap: onMenuTap, isHome: true)
             
             ScrollView {
                 VStack {
@@ -130,25 +131,9 @@ struct OperationsListView: View {
     let allBanks: [Bank]
     let onMenuTap: () -> Void
     
-    @AppStorage("showBankNameBanner") private var showBankNameBanner = true
-    
     var body: some View {
         VStack(spacing: 0) {
             TopNavBar(themeColor: bank.themeColor, onMenuTap: onMenuTap, bank: bank)
-            
-            // Banner with full bank name
-            if showBankNameBanner {
-                HStack {
-                    Text(bank.name)
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(.primary)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 10)
-                .background(bank.themeColor)
-                .shadow(color: Color.black.opacity(0.15), radius: 3, x: 0, y: 3)
-                .zIndex(1) // Keep shadow above scrollview
-            }
             
             ScrollView {
                 VStack(spacing: 0) {
@@ -184,6 +169,7 @@ struct OperationsListView: View {
 struct SideMenuView: View {
     let banks: [Bank]
     let selectedBank: Bank?
+    let activeScreen: ActiveScreen
     let onSelectHome: () -> Void
     let onSelectBank: (Bank) -> Void
     let onSelectHelp: () -> Void
@@ -205,14 +191,17 @@ struct SideMenuView: View {
                 }
                 .buttonStyle(PlainButtonStyle())
                 .padding(.top, 40)
-                .padding(.bottom, 10)
-                
-                Divider().padding(.trailing, 40)
                                 
                 // Link Items
                 VStack(alignment: .leading, spacing: 25) {
+                    MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, systemImageName: "star.fill", title: "Favoritos", isSelected: activeScreen == .home) {
+                        onSelectHome()
+                    }
+                    
+                    Divider().padding(.trailing, 40)
+                    
                     ForEach(banks) { bank in
-                        MenuRow(iconColor: Color(hex: "B38B4D"), imageName: "\(bank.id)/icon", systemImageName: nil, title: bank.shortName.uppercased(), isSelected: selectedBank?.id == bank.id) {
+                        MenuRow(iconColor: Color(hex: "B38B4D"), imageName: "\(bank.id)/icon", systemImageName: nil, title: bank.shortName.uppercased(), isSelected: activeScreen == .bank && selectedBank?.id == bank.id) {
                             onSelectBank(bank)
                         }
                     }
@@ -222,13 +211,13 @@ struct SideMenuView: View {
                     // MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, title: "Contactos del Banco", isSelected: false) {}
                     
                     Divider().padding(.trailing, 40)
-                    MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, systemImageName: "info.circle", title: "Información", isSelected: false) {
+                    MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, systemImageName: "info.circle", title: "Información", isSelected: activeScreen == .info) {
                         onSelectHelp()
                     }
-                    MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, systemImageName: "questionmark.circle", title: "Ayuda", isSelected: false) {
+                    MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, systemImageName: "questionmark.circle", title: "Ayuda", isSelected: activeScreen == .tutorial) {
                         onSelectTutorial()
                     }
-                    MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, systemImageName: "gearshape", title: "Configuración", isSelected: false) {
+                    MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, systemImageName: "gearshape", title: "Configuración", isSelected: activeScreen == .config) {
                         onSelectConfig()
                     }
 
@@ -255,7 +244,7 @@ struct HelpView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            TopNavBar(themeColor: Color(UIColor.systemBackground), onMenuTap: onMenuTap)
+            TopNavBar(themeColor: Color(UIColor.systemBackground), onMenuTap: onMenuTap, title: "Información")
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 25) {
@@ -356,18 +345,18 @@ struct MenuRow: View {
                     Image(imageName)
                         .resizable()
                         .renderingMode(.template)
-                        .foregroundColor(isSelected ? .white : iconColor)
+                        .foregroundColor(isSelected ? .primary : iconColor)
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 24, height: 24)
                         .cornerRadius(6)
                 } else if let systemName = systemImageName {
                     Image(systemName: systemName)
                         .font(.system(size: 20))
-                        .foregroundColor(iconColor)
+                        .foregroundColor(isSelected ? .primary : iconColor)
                         .frame(width: 24, height: 24)
                 } else {
                     Circle()
-                        .fill(iconColor)
+                        .fill(isSelected ? .primary : iconColor)
                         .frame(width: 24, height: 24)
                 }
                 
@@ -386,7 +375,7 @@ struct TutorialView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            TopNavBar(themeColor: Color(UIColor.systemBackground), onMenuTap: onMenuTap)
+            TopNavBar(themeColor: Color(UIColor.systemBackground), onMenuTap: onMenuTap, title: "Ayuda")
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 25) {
@@ -422,14 +411,14 @@ struct ConfigView: View {
     @AppStorage("lastAuthTime") private var lastAuthTime: Double = 0
     
     @AppStorage("showNetworkStatus") private var showNetworkStatus = false
-    @AppStorage("showBankNameBanner") private var showBankNameBanner = true
+    @AppStorage("useBankNameInsteadOfIcon") private var useBankNameInsteadOfIcon = false
     @AppStorage("showBanksInFavorites") private var showBanksInFavorites = true
     
     @State private var pendingAuthEnabled: Bool = false
     
     var body: some View {
         VStack(spacing: 0) {
-            TopNavBar(themeColor: Color(UIColor.systemBackground), onMenuTap: onMenuTap)
+            TopNavBar(themeColor: Color(UIColor.systemBackground), onMenuTap: onMenuTap, title: "Configuración")
             
             Form {
                 Section(header: Text("Apariencia")) {
@@ -444,7 +433,7 @@ struct ConfigView: View {
                 
                 Section(header: Text("General y Preferencias")) {
                     Toggle("Aviso de estado de conexión", isOn: $showNetworkStatus)
-                    Toggle("Nombre de banco en vista", isOn: $showBankNameBanner)
+                    Toggle("Mostrar nombre de banco en vez de icono", isOn: $useBankNameInsteadOfIcon)
                     Toggle("Mostrar bancos en favoritos", isOn: $showBanksInFavorites)
                 }
                 

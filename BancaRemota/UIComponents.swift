@@ -6,6 +6,10 @@ struct TopNavBar: View {
     var onMenuTap: () -> Void
     var showMenuBtn: Bool = true
     var bank: Bank? = nil
+    var title: String? = nil
+    var isHome: Bool = false
+    
+    @AppStorage("useBankNameInsteadOfIcon") private var useBankNameInsteadOfIcon = false
     
     var body: some View {
         HStack {
@@ -21,15 +25,36 @@ struct TopNavBar: View {
             
             Spacer()
             
-            // Logo Circle
-            if let bank = bank {
-                Image("\(bank.id)/icon")
-                    .resizable()
-                    .renderingMode(.template)
-                    .foregroundColor(.primary)
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 50, height: 50)
+            // Center Content
+            Group {
+                if let bank = bank {
+                    if useBankNameInsteadOfIcon {
+                        Text(bank.name)
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(.primary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                    } else {
+                        Image("\(bank.id)/icon")
+                            .resizable()
+                            .renderingMode(.template)
+                            .foregroundColor(.primary)
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 40, height: 40)
+                    }
+                } else if isHome {
+                    Image("branding_logo")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                } else if let title = title {
+                    Text(title)
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                }
             }
+            .frame(height: 40)
             
             Spacer()
             
