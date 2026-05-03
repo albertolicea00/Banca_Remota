@@ -7,6 +7,11 @@ enum ActiveScreen {
     case info
     case tutorial
     case config
+    case contactos
+    case cuentasBanco
+    case cuentasNauta
+    case misClaves
+    case tasaCambio
 }
 
 // MARK: - Navigation Hub View
@@ -37,6 +42,16 @@ struct MainView: View {
                             selectedBank = bank
                             activeScreen = .bank
                         }, onMenuTap: { withAnimation { isMenuOpen.toggle() } })
+                    case .contactos:
+                        UnderConstructionView(title: "Contactos", onMenuTap: { withAnimation { isMenuOpen.toggle() } })
+                    case .cuentasBanco:
+                        UnderConstructionView(title: "Cuentas de Banco", onMenuTap: { withAnimation { isMenuOpen.toggle() } })
+                    case .cuentasNauta:
+                        UnderConstructionView(title: "Cuentas de Nauta", onMenuTap: { withAnimation { isMenuOpen.toggle() } })
+                    case .misClaves:
+                        UnderConstructionView(title: "Mis Claves", onMenuTap: { withAnimation { isMenuOpen.toggle() } })
+                    case .tasaCambio:
+                        UnderConstructionView(title: "Tasa de Cambio", onMenuTap: { withAnimation { isMenuOpen.toggle() } })
                     }
                 } else {
                     ProgressView("Loading Configuration...")
@@ -82,6 +97,11 @@ struct MainView: View {
                     },
                     onSelectConfig: {
                         activeScreen = .config
+                        withAnimation { isMenuOpen = false }
+                    },
+                    onSelectScreen: { screen in
+                        selectedBank = nil
+                        activeScreen = screen
                         withAnimation { isMenuOpen = false }
                     }
                 )
@@ -175,6 +195,7 @@ struct SideMenuView: View {
     let onSelectHelp: () -> Void
     let onSelectTutorial: () -> Void
     let onSelectConfig: () -> Void
+    let onSelectScreen: (ActiveScreen) -> Void
     
     var body: some View {
         ZStack(alignment: .leading) {
@@ -190,7 +211,7 @@ struct SideMenuView: View {
                         .padding(.horizontal, 20)
                 }
                 .buttonStyle(PlainButtonStyle())
-                .padding(.top, 40)
+                .padding(.top, 30)
                                 
                 // Link Items
                 VStack(alignment: .leading, spacing: 25) {
@@ -206,10 +227,21 @@ struct SideMenuView: View {
                         }
                     }
                     
-                    // Divider().padding(.trailing, 40)
-                    // MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, title: "Tasa de Cambio", isSelected: false) {}
-                    // MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, title: "Contactos del Banco", isSelected: false) {}
+                    Divider().padding(.trailing, 40)
                     
+                    MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, systemImageName: "person.crop.circle", title: "Contactos", isSelected: activeScreen == .contactos) { onSelectScreen(.contactos) }
+
+                    MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, systemImageName: "building.columns.fill", title: "Cuentas de Banco", isSelected: activeScreen == .cuentasBanco) { onSelectScreen(.cuentasBanco) }
+
+                    MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, systemImageName: "wifi", title: "Cuentas de Nauta", isSelected: activeScreen == .cuentasNauta) { onSelectScreen(.cuentasNauta) }
+
+                    
+                    Divider().padding(.trailing, 40)
+                    MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, systemImageName: "key.fill", title: "Mis Claves", isSelected: activeScreen == .misClaves) { onSelectScreen(.misClaves) }
+
+                    Divider().padding(.trailing, 40)
+                    MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, systemImageName: "arrow.left.arrow.right", title: "Tasa de Cambio", isSelected: activeScreen == .tasaCambio) { onSelectScreen(.tasaCambio) }
+
                     Divider().padding(.trailing, 40)
                     MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, systemImageName: "info.circle", title: "Información", isSelected: activeScreen == .info) {
                         onSelectHelp()
@@ -482,6 +514,36 @@ struct ConfigView: View {
             .onAppear {
                 pendingAuthEnabled = authEnabled
             }
+        }
+    }
+}
+
+// MARK: - Under Construction View
+struct UnderConstructionView: View {
+    let title: String
+    let onMenuTap: () -> Void
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            TopNavBar(themeColor: Color(UIColor.systemBackground), onMenuTap: onMenuTap, title: title)
+            
+            VStack(spacing: 20) {
+                Spacer()
+                Image(systemName: "hammer.fill")
+                    .font(.system(size: 60))
+                    .foregroundColor(Color(hex: "B38B4D"))
+                Text("En Construcción")
+                    .font(.title)
+                    .fontWeight(.bold)
+                Text("Esta sección estará disponible en futuras actualizaciones de la aplicación. ¡Gracias por la espera!")
+                    .font(.body)
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 40)
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color(UIColor.systemGroupedBackground))
         }
     }
 }
