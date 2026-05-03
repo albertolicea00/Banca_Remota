@@ -164,10 +164,18 @@ struct BankSelectionView: View {
                 VStack(alignment: .leading, spacing: 30) {
                     if showBanksInFavorites {
                         VStack(alignment: .leading, spacing: 15) {
-                            Text("Bancos Favoritos")
-                                .font(.headline)
-                                .foregroundColor(.secondary)
-                                .padding(.horizontal)
+                            HStack(alignment: .bottom) {
+                                Text("Mis Bancos")
+                                    .font(.headline)
+                                
+                                if useBanksAsLogin {
+                                    Text("(toque para autenticarse)")
+                                        .font(.caption)
+                                        .italic()
+                                }
+                            }
+                            .foregroundColor(.secondary)
+                            .padding(.horizontal)
                             
                             HStack(spacing: 15) {
                                 ForEach(banks) { bank in
@@ -566,7 +574,7 @@ struct ConfigView: View {
     @AppStorage("lastAuthTime") private var lastAuthTime: Double = 0
     
     @AppStorage("showNetworkStatus") private var showNetworkStatus = false
-    @AppStorage("useBankNameInsteadOfIcon") private var useBankNameInsteadOfIcon = true
+    @AppStorage("useBankNameInsteadOfIcon") private var useBankNameInsteadOfIcon = false
     @AppStorage("showBanksInFavorites") private var showBanksInFavorites = true
     @AppStorage("useBanksAsLogin") private var useBanksAsLogin = true
     @AppStorage("showShortcutsInFavorites") private var showShortcutsInFavorites = true
@@ -610,9 +618,9 @@ struct ConfigView: View {
                     Toggle("Aviso de estado de conexión", isOn: $showNetworkStatus)
                     Toggle("Mostrar nombre de banco en vez de icono", isOn: $useBankNameInsteadOfIcon)
                     Toggle("Mostrar atajos de menú en favoritos", isOn: $showShortcutsInFavorites)
-                    Toggle("Mostrar bancos en favoritos", isOn: $showBanksInFavorites)
-                    Toggle("Usar bancos en favoritos como inicio de sesión", isOn: $useBanksAsLogin)
-                        .disabled(true)
+                    // Toggle("Mostrar bancos en favoritos", isOn: $showBanksInFavorites)
+                    // Toggle("Usar bancos en favoritos como inicio de sesión", isOn: $useBanksAsLogin)
+                    //     .disabled(!showBanksInFavorites)
                 }
                 
                 Section(header: Text("Gestión de Datos")) {
