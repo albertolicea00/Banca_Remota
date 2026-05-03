@@ -41,13 +41,16 @@ struct MainView: View {
                         BankSelectionView(banks: config.banks, onSelectBank: { bank in
                             selectedBank = bank
                             activeScreen = .bank
+                        }, onSelectScreen: { screen in
+                            selectedBank = nil
+                            activeScreen = screen
                         }, onMenuTap: { withAnimation { isMenuOpen.toggle() } })
                     case .contactos:
                         UnderConstructionView(title: "Contactos", onMenuTap: { withAnimation { isMenuOpen.toggle() } })
-                    case .cuentasBanco:
-                        UnderConstructionView(title: "Cuentas de Banco", onMenuTap: { withAnimation { isMenuOpen.toggle() } })
                     case .cuentasNauta:
                         UnderConstructionView(title: "Cuentas de Nauta", onMenuTap: { withAnimation { isMenuOpen.toggle() } })
+                    case .cuentasBanco:
+                        UnderConstructionView(title: "Cuentas de Banco", onMenuTap: { withAnimation { isMenuOpen.toggle() } })
                     case .misClaves:
                         UnderConstructionView(title: "Mis Claves", onMenuTap: { withAnimation { isMenuOpen.toggle() } })
                     case .tasaCambio:
@@ -116,25 +119,64 @@ struct MainView: View {
 struct BankSelectionView: View {
     let banks: [Bank]
     let onSelectBank: (Bank) -> Void
+    let onSelectScreen: (ActiveScreen) -> Void
     let onMenuTap: () -> Void
     
     @AppStorage("showBanksInFavorites") private var showBanksInFavorites = true
+    @AppStorage("showShortcutsInFavorites") private var showShortcutsInFavorites = true
     
     var body: some View {
         VStack(spacing: 0) {
             TopNavBar(themeColor: Color(UIColor.systemBackground), onMenuTap: onMenuTap, isHome: true)
             
             ScrollView {
-                VStack {
+                VStack(alignment: .leading, spacing: 30) {
                     if showBanksInFavorites {
-                        HStack(spacing: 15) {
-                            ForEach(banks) { bank in
-                                BankSelectionCard(bank: bank) {
-                                    onSelectBank(bank)
+                        VStack(alignment: .leading, spacing: 15) {
+                            Text("Bancos Favoritos")
+                                .font(.headline)
+                                .foregroundColor(.secondary)
+                                .padding(.horizontal)
+                            
+                            HStack(spacing: 15) {
+                                ForEach(banks) { bank in
+                                    BankSelectionCard(bank: bank) {
+                                        onSelectBank(bank)
+                                    }
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+                        .padding(.top, 20)
+                    }
+                    
+                    if showShortcutsInFavorites {
+                        VStack(alignment: .leading, spacing: 15) {
+                            Text("Atajos de Menú")
+                                .font(.headline)
+                                .foregroundColor(.secondary)
+                                .padding(.horizontal)
+                            
+                            ScrollViewReader { proxy in
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 20) {
+                                        // MenuShortcutCard(iconName: "person.crop.circle", title: "Contactos", themeColor: Color(hex: "B38B4D")) { onSelectScreen(.contactos) }.id(0)
+                                        MenuShortcutCard(iconName: "wifi", title: "Nauta", themeColor: Color(hex: "B38B4D")) { onSelectScreen(.cuentasNauta) }.id(2)
+                                        MenuShortcutCard(iconName: "building.columns.fill", title: "Cuentas", themeColor: Color(hex: "B38B4D")) { onSelectScreen(.cuentasBanco) }.id(1)
+                                        MenuShortcutCard(iconName: "key.fill", title: "Claves", themeColor: Color(hex: "B38B4D")) { onSelectScreen(.misClaves) }.id(3)
+                                        MenuShortcutCard(iconName: "arrow.left.arrow.right", title: "Cambio", themeColor: Color(hex: "B38B4D")) { onSelectScreen(.tasaCambio) }.id(4)
+                                    }
+                                    .padding(.horizontal)
+                                    .padding(.bottom, 10)
+                                }
+                                .onAppear {
+                                    DispatchQueue.main.async {
+                                        proxy.scrollTo(2, anchor: .center)
+                                    }
                                 }
                             }
                         }
-                        .padding()
+                        .padding(.top, showBanksInFavorites ? 0 : 20)
                     }
                     
                     Spacer()
@@ -228,12 +270,9 @@ struct SideMenuView: View {
                     }
                     
                     Divider().padding(.trailing, 40)
-                    
-                    MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, systemImageName: "person.crop.circle", title: "Contactos", isSelected: activeScreen == .contactos) { onSelectScreen(.contactos) }
-
-                    MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, systemImageName: "building.columns.fill", title: "Cuentas de Banco", isSelected: activeScreen == .cuentasBanco) { onSelectScreen(.cuentasBanco) }
-
+                    // MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, systemImageName: "person.crop.circle", title: "Contactos", isSelected: activeScreen == .contactos) { onSelectScreen(.contactos) }
                     MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, systemImageName: "wifi", title: "Cuentas de Nauta", isSelected: activeScreen == .cuentasNauta) { onSelectScreen(.cuentasNauta) }
+                    MenuRow(iconColor: Color(hex: "B38B4D"), imageName: nil, systemImageName: "building.columns.fill", title: "Cuentas de Banco", isSelected: activeScreen == .cuentasBanco) { onSelectScreen(.cuentasBanco) }
 
                     
                     Divider().padding(.trailing, 40)
@@ -445,6 +484,7 @@ struct ConfigView: View {
     @AppStorage("showNetworkStatus") private var showNetworkStatus = false
     @AppStorage("useBankNameInsteadOfIcon") private var useBankNameInsteadOfIcon = false
     @AppStorage("showBanksInFavorites") private var showBanksInFavorites = true
+    @AppStorage("showShortcutsInFavorites") private var showShortcutsInFavorites = true
     
     @State private var pendingAuthEnabled: Bool = false
     
@@ -467,6 +507,7 @@ struct ConfigView: View {
                     Toggle("Aviso de estado de conexión", isOn: $showNetworkStatus)
                     Toggle("Mostrar nombre de banco en vez de icono", isOn: $useBankNameInsteadOfIcon)
                     Toggle("Mostrar bancos en favoritos", isOn: $showBanksInFavorites)
+                    Toggle("Mostrar atajos de menú en favoritos", isOn: $showShortcutsInFavorites)
                 }
                 
                 Section(header: Text("Seguridad y Autenticación"), footer: Text("Protege el acceso a la aplicación usando la seguridad nativa de tu dispositivo (Face ID, Touch ID o Código).")) {

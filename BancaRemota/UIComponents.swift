@@ -143,3 +143,33 @@ struct BankSelectionCard: View {
         .buttonStyle(PlainButtonStyle())
     }
 }
+
+// MARK: - Menu Shortcut Card
+struct MenuShortcutCard: View {
+    let iconName: String
+    let title: String
+    let themeColor: Color
+    let onTap: () -> Void
+    
+    var body: some View {
+        Button(action: onTap) {
+            VStack(spacing: 12) {
+                Image(systemName: iconName)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(height: 30)
+                    .foregroundColor(.primary)
+                
+                Text(title)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(.primary)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(width: 110, height: 90)
+            .background(themeColor)
+            .cornerRadius(16)
+            .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 3)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
