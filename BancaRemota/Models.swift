@@ -60,3 +60,41 @@ extension Color {
         )
     }
 }
+
+// MARK: - Favorites Management
+struct FavoriteOperation: Codable, Identifiable, Equatable {
+    var id: String { "\(bankId)_\(operation.id)" }
+    let bankId: String
+    let operation: BankOperation
+    
+    static func == (lhs: FavoriteOperation, rhs: FavoriteOperation) -> Bool {
+        lhs.id == rhs.id
+    }
+}
+
+class FavoritesManager: ObservableObject {
+    static let shared = FavoritesManager()
+    
+    @Published var favoriteOperations: [FavoriteOperation] = [] {
+        didSet {
+            save()
+        }
+    }
+    
+    init() {
+        load()
+    }
+    
+    private func save() {
+        if let encoded = try? JSONEncoder().encode(favoriteOperations) {
+            UserDefaults.standard.set(encoded, forKey: "favoriteOperations")
+        }
+    }
+    
+    private func load() {
+        if let data = UserDefaults.standard.data(forKey: "favoriteOperations"),
+           let decoded = try? JSONDecoder().decode([FavoriteOperation].self, from: data) {
+            favoriteOperations = decoded
+        }
+    }
+}

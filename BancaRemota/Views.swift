@@ -124,7 +124,8 @@ struct BankSelectionView: View {
     
     @AppStorage("showBanksInFavorites") private var showBanksInFavorites = true
     @AppStorage("showShortcutsInFavorites") private var showShortcutsInFavorites = true
-    
+    @ObservedObject private var favoritesManager = FavoritesManager.shared
+    @State private var isShowingAddFavorite = false
     var body: some View {
         VStack(spacing: 0) {
             TopNavBar(themeColor: Color(UIColor.systemBackground), onMenuTap: onMenuTap, isHome: true)
@@ -179,10 +180,47 @@ struct BankSelectionView: View {
                         .padding(.top, showBanksInFavorites ? 0 : 20)
                     }
                     
+                    VStack(alignment: .leading, spacing: 15) {
+                        Text("Operaciones Favoritas")
+                            .font(.headline)
+                            .foregroundColor(.secondary)
+                            .padding(.horizontal)
+                        
+                        if !favoritesManager.favoriteOperations.isEmpty {
+                            ForEach(favoritesManager.favoriteOperations) { fav in
+                                if let bank = banks.first(where: { $0.id == fav.bankId }) {
+                                    OperationCard(operation: fav.operation, themeColor: bank.themeColor) {
+                                        CallService.shared.executeUSSD(code: fav.operation.ussdCode)
+                                    }
+                                    .padding(.horizontal)
+                                }
+                            }
+                        }
+                        
+                        Button(action: { isShowingAddFavorite = true }) {
+                            HStack {
+                                Image(systemName: "plus.circle.fill")
+                                Text("Agregar operación favorita")
+                            }
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(Color(hex: "B38B4D"))
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color(UIColor.secondarySystemBackground))
+                            .cornerRadius(12)
+                        }
+                        .padding(.horizontal)
+                    }
+                    .padding(.top, showShortcutsInFavorites ? 0 : 20)
+                    .padding(.bottom, 30)
+                    
                     Spacer()
                 }
             }
             .background(Color(UIColor.systemGroupedBackground))
+            .sheet(isPresented: $isShowingAddFavorite) {
+                AddFavoriteOperationView(banks: banks)
+            }
         }
     }
 }
@@ -585,6 +623,98 @@ struct UnderConstructionView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color(UIColor.systemGroupedBackground))
+        }
+    }
+}
+
+// MARK: - Add Favorite Operation View
+struct AddFavoriteOperationView: View {
+    @Environment(\.presentationMode) var presentationMode
+    let banks: [Bank]
+    @ObservedObject var favoritesManager = FavoritesManager.shared
+    @State private var searchText = ""
+    
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 0) {
+                // Search Bar
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.secondary)
+                    TextField("Buscar operación o banco...", text: $searchText)
+                        .disableAutocorrection(true)
+                    
+                    if !searchText.isEmpty {
+                        Button(action: { searchText = "" }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+                .padding(10)
+                .background(Color(UIColor.secondarySystemBackground))
+                .cornerRadius(10)
+                .padding(.horizontal)
+                .padding(.vertical, 10)
+                
+                List {
+                    ForEach(banks) { bank in
+                        ForEach(bank.categories) { category in
+                            let filteredOperations = category.operations.filter { operation in
+                                searchText.isEmpty || 
+                                operation.name.localizedCaseInsensitiveContains(searchText) ||
+                                operation.description.localizedCaseInsensitiveContains(searchText) ||
+                                bank.shortName.localizedCaseInsensitiveContains(searchText)
+                            }
+                            
+                            if !filteredOperations.isEmpty {
+                                Section(header: Text("\(bank.shortName.uppercased()) - \(category.name)")) {
+                                    ForEach(filteredOperations) { operation in
+                                        let isFavorite = favoritesManager.favoriteOperations.contains(where: { $0.id == "\(bank.id)_\(operation.id)" })
+                                        
+                                        Button(action: {
+                                            if isFavorite {
+                                                favoritesManager.favoriteOperations.removeAll(where: { $0.id == "\(bank.id)_\(operation.id)" })
+                                            } else {
+                                                favoritesManager.favoriteOperations.append(FavoriteOperation(bankId: bank.id, operation: operation))
+                                            }
+                                        }) {
+                                            HStack(spacing: 15) {
+                                                Image(systemName: operation.iconName)
+                                                    .foregroundColor(bank.themeColor)
+                                                    .frame(width: 25)
+                                                
+                                                VStack(alignment: .leading, spacing: 4) {
+                                                    Text(operation.name)
+                                                        .foregroundColor(.primary)
+                                                    Text(operation.description)
+                                                        .font(.caption)
+                                                        .foregroundColor(.secondary)
+                                                        .lineLimit(1)
+                                                }
+                                                
+                                                Spacer()
+                                                
+                                                if isFavorite {
+                                                    Image(systemName: "star.fill")
+                                                        .foregroundColor(Color(hex: "B38B4D"))
+                                                } else {
+                                                    Image(systemName: "plus.circle")
+                                                        .foregroundColor(.secondary)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Agregar Favorito")
+            .navigationBarItems(trailing: Button("Cerrar") {
+                presentationMode.wrappedValue.dismiss()
+            })
         }
     }
 }
