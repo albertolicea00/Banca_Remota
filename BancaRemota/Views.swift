@@ -1102,58 +1102,79 @@ struct KeysListView: View {
     @State private var keyToEdit: UserKey?
     @State private var keyToDelete: UserKey?
     @State private var showingDeleteAlert = false
-    
+    @AppStorage("authEnabled") private var authEnabled: Bool = false
+
     var body: some View {
         VStack(spacing: 0) {
             TopNavBar(themeColor: .appPrimary, onMenuTap: onMenuTap, title: "Mis Claves")
-            
-            List {
-                if userData.userKeys.isEmpty {
-                    EmptyStateView(title: "Sin claves", message: "Guarda tus PINs y contraseñas de forma segura.", iconName: "key.fill")
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
-                } else {
-                    let grouped = Dictionary(grouping: userData.userKeys, by: { $0.group.isEmpty ? "General" : $0.group })
-                    
-                    ForEach(grouped.keys.sorted(), id: \.self) { groupName in
-                        Section(header: Text(groupName.uppercased())
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(.secondary)) {
-                            
-                            ForEach(grouped[groupName] ?? []) { key in
-                                DataCard(
-                                    id: key.id,
-                                    title: key.label,
-                                    subtitle: key.category == .other ? (key.customCategory ?? "Otros") : key.category.rawValue,
-                                    value: key.value,
-                                    iconName: key.category.iconName,
-                                    backgroundColor: .purple,
-                                    onEdit: { keyToEdit = key },
-                                    onDelete: { 
-                                        keyToDelete = key
-                                        showingDeleteAlert = true
-                                    }
-                                )
-                                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                                .listRowBackground(Color.clear)
-                                .listRowSeparator(.hidden)
+
+            if !authEnabled {
+                VStack(spacing: 20) {
+                    Spacer()
+                    Image(systemName: "lock.shield.fill")
+                        .font(.system(size: 60))
+                        .foregroundColor(.purple.opacity(0.4))
+                    Text("Sección protegida")
+                        .font(.title3)
+                        .fontWeight(.bold)
+                    Text("Para acceder a tus claves debes activar la autenticación en Configuración.")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color(UIColor.systemGroupedBackground))
+            } else {
+                List {
+                    if userData.userKeys.isEmpty {
+                        EmptyStateView(title: "Sin claves", message: "Guarda tus PINs y contraseñas de forma segura.", iconName: "key.fill")
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                    } else {
+                        let grouped = Dictionary(grouping: userData.userKeys, by: { $0.group.isEmpty ? "General" : $0.group })
+
+                        ForEach(grouped.keys.sorted(), id: \.self) { groupName in
+                            Section(header: Text(groupName.uppercased())
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(.secondary)) {
+
+                                ForEach(grouped[groupName] ?? []) { key in
+                                    DataCard(
+                                        id: key.id,
+                                        title: key.label,
+                                        subtitle: key.category == .other ? (key.customCategory ?? "Otros") : key.category.rawValue,
+                                        value: key.value,
+                                        iconName: key.category.iconName,
+                                        backgroundColor: .purple,
+                                        onEdit: { keyToEdit = key },
+                                        onDelete: {
+                                            keyToDelete = key
+                                            showingDeleteAlert = true
+                                        }
+                                    )
+                                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                                    .listRowBackground(Color.clear)
+                                    .listRowSeparator(.hidden)
+                                }
                             }
                         }
                     }
                 }
-            }
-            .listStyle(.plain)
-            .background(Color(UIColor.systemGroupedBackground))
-            
-            Button(action: { showingAddKey = true }) {
-                Label("Nueva Clave", systemImage: "plus.circle.fill")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.purple)
-                    .cornerRadius(12)
-                    .padding()
+                .listStyle(.plain)
+                .background(Color(UIColor.systemGroupedBackground))
+
+                Button(action: { showingAddKey = true }) {
+                    Label("Nueva Clave", systemImage: "plus.circle.fill")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.purple)
+                        .cornerRadius(12)
+                        .padding()
+                }
             }
         }
         .sheet(isPresented: $showingAddKey) {
