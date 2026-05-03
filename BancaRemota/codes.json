@@ -45,7 +45,7 @@
             { "id": "op_39", "name": "Recarga propia", "description": "Recargar tarjeta propia", "iconName": "plus.circle", "ussdCode": "*444*77#" },
             { "id": "op_40", "name": "Pago deuda Nauta Hogar", "description": "Pagar deuda Nauta Hogar", "iconName": "house.fill", "ussdCode": "*444*86#" },
             { "id": "op_48", "name": "Depósito a plazo fijo", "description": "Apertura depósito", "iconName": "lock.square", "ussdCode": "*444*81#" },
-            { "id": "op_49", "name": "Cerrar plazo fijo", "description": "Cierre de depósito", "iconName": "lock.slash.square", "ussdCode": "*444*82#" }
+            { "id": "op_49", "name": "Cerrar plazo fijo", "description": "Cierre de depósito", "iconName": "lock.open", "ussdCode": "*444*82#" }
           ]
         },
         {
@@ -57,7 +57,7 @@
             { "id": "op_15", "name": "Servicios Contratados", "description": "Lista de servicios", "iconName": "list.dash", "ussdCode": "*444*52#" },
             { "id": "op_19", "name": "Ayuda", "description": "Listado de operaciones", "iconName": "questionmark.circle", "ussdCode": "*444*71#" },
             { "id": "op_20", "name": "Amortizar créditos", "description": "Amortizar créditos bancarios", "iconName": "minus.circle", "ussdCode": "*444*55#" },
-            { "id": "op_27", "name": "Generar código PIN", "description": "PIN no impreso", "iconName": "pincode", "ussdCode": "*444*79#" },
+            { "id": "op_27", "name": "Generar código PIN", "description": "PIN no impreso", "iconName": "key.fill", "ussdCode": "*444*79#" },
             { "id": "op_31", "name": "Reimpresión tarjeta", "description": "Extravío o daño", "iconName": "creditcard.and.123", "ussdCode": "*444*74#" },
             { "id": "op_36", "name": "Pérdida de PIN", "description": "Pérdida PIN tarjeta", "iconName": "lock.open", "ussdCode": "*444*83#" },
             { "id": "op_43", "name": "Cambiar clave", "description": "Cambiar clave de acceso", "iconName": "key", "ussdCode": "*444*69#" },
@@ -123,12 +123,12 @@
             { "id": "op_16", "name": "Últimos pagos", "description": "Consultar últimos realizados", "iconName": "list.bullet.indent", "ussdCode": "*444*63#" },
             { "id": "op_19", "name": "Ayuda", "description": "Listado de operaciones", "iconName": "questionmark.circle", "ussdCode": "*444*71#" },
             { "id": "op_20", "name": "Amortizar créditos", "description": "Amortizar créditos bancarios", "iconName": "minus.circle", "ussdCode": "*444*55#" },
-            { "id": "op_27", "name": "Generar código PIN", "description": "PIN no impreso", "iconName": "pincode", "ussdCode": "*444*79#" },
+            { "id": "op_27", "name": "Generar código PIN", "description": "PIN no impreso", "iconName": "key.fill", "ussdCode": "*444*79#" },
             { "id": "op_31", "name": "Reimpresión tarjeta", "description": "Extravío o daño", "iconName": "creditcard.and.123", "ussdCode": "*444*74#" },
             { "id": "op_32", "name": "Información RED", "description": "Consultar información RED", "iconName": "info.circle", "ussdCode": "*444*78#" },
             { "id": "op_43", "name": "Cambiar clave", "description": "Cambiar clave de acceso", "iconName": "key", "ussdCode": "*444*69#" },
             { "id": "op_47", "name": "Apertura USD", "description": "Apertura cuenta USD", "iconName": "dollarsign.square", "ussdCode": "*444*76#" },
-            { "id": "op_50", "name": "PIN Multibanca", "description": "Cambio PIN multibanca", "iconName": "lock.rotation", "ussdCode": "*444*57#" }
+            { "id": "op_50", "name": "PIN Multibanca", "description": "Cambio PIN multibanca", "iconName": "arrow.2.circlepath", "ussdCode": "*444*57#" }
           ]
         }
       ]
@@ -190,8 +190,8 @@
             { "id": "op_15", "name": "Servicios Contratados", "description": "Lista de servicios", "iconName": "list.dash", "ussdCode": "*444*52#" },
             { "id": "op_18", "name": "Asociar cuenta", "description": "Asociar a telebanca", "iconName": "link.badge.plus", "ussdCode": "*444*60#" },
             { "id": "op_19", "name": "Ayuda", "description": "Listado de operaciones", "iconName": "questionmark.circle", "ussdCode": "*444*71#" },
-            { "id": "op_25", "name": "Cambiar PIN", "description": "Cambio PIN Telebanca", "iconName": "lock.rotation", "ussdCode": "*444*69#" },
-            { "id": "op_27", "name": "Generar código PIN", "description": "PIN no impreso", "iconName": "pincode", "ussdCode": "*444*79#" },
+            { "id": "op_25", "name": "Cambiar PIN", "description": "Cambio PIN Telebanca", "iconName": "arrow.2.circlepath", "ussdCode": "*444*69#" },
+            { "id": "op_27", "name": "Generar código PIN", "description": "PIN no impreso", "iconName": "key.fill", "ussdCode": "*444*79#" },
             { "id": "op_31", "name": "Reimpresión tarjeta", "description": "Extravío o daño", "iconName": "creditcard.and.123", "ussdCode": "*444*74#" },
             { "id": "op_46", "name": "Actualizar cuenta", "description": "Actualizar asociadas", "iconName": "arrow.triangle.2.circlepath", "ussdCode": "*444*53#" },
             { "id": "op_47", "name": "Apertura USD", "description": "Apertura cuenta USD", "iconName": "dollarsign.square", "ussdCode": "*444*76#" }

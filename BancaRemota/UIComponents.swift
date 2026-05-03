@@ -13,7 +13,7 @@ struct TopNavBar: View {
                 Button(action: onMenuTap) {
                     Image(systemName: "line.horizontal.3")
                         .font(.title2)
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                 }
             } else {
                 Spacer().frame(width: 30) // placeholder
@@ -25,17 +25,22 @@ struct TopNavBar: View {
             if let bank = bank {
                 Image("\(bank.id)/icon")
                     .resizable()
+                    .renderingMode(.template)
+                    .foregroundColor(.primary)
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 50, height: 50)
             }
             
             Spacer()
             
+            /*
             Button(action: {}) {
                 Image(systemName: "gearshape")
                     .font(.title2)
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
             }
+            */
+            Spacer().frame(width: 30) // placeholder to maintain centering
         }
         .padding(.horizontal)
         .padding(.top, 10)
@@ -56,7 +61,7 @@ struct OperationCard: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(operation.name)
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                     
                     Text(operation.description)
                         .font(.system(size: 12))
@@ -73,13 +78,13 @@ struct OperationCard: View {
                     
                     Image(systemName: operation.iconName)
                         .font(.system(size: 20))
-                        .foregroundColor(.white)
+                        .foregroundColor(.primary)
                 }
             }
             .padding()
-            .background(Color.white)
+            .background(Color(.secondarySystemBackground))
             .cornerRadius(12)
-            .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+            .shadow(color: Color.primary.opacity(0.1), radius: 5, x: 0, y: 2)
         }
         .buttonStyle(PlainButtonStyle())
     }
@@ -93,18 +98,20 @@ struct BankSelectionCard: View {
     var body: some View {
         Button(action: onTap) {
             VStack(spacing: 12) {
-                Image("\(bank.id)/logo")
+                Image("\(bank.id)/icon")
                     .resizable()
+                    .renderingMode(.template)
+                    .foregroundColor(.primary)
                     .aspectRatio(contentMode: .fit)
                     .frame(height: 40)
                 
                 Text(bank.shortName)
                     .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
-            .background(Color.white)
+            .background(bank.themeColor)
             .cornerRadius(16)
             .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 3)
         }
