@@ -5,6 +5,7 @@ struct TopNavBar: View {
     var themeColor: Color
     var onMenuTap: () -> Void
     var showMenuBtn: Bool = true
+    var bank: Bank? = nil
     
     var body: some View {
         HStack {
@@ -21,25 +22,12 @@ struct TopNavBar: View {
             Spacer()
             
             // Logo Circle
-            ZStack {
-                Circle()
-                    .fill(Color.white)
+            if let bank = bank {
+                Image("\(bank.id)/icon")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
                     .frame(width: 50, height: 50)
-                
-                VStack(spacing: 0) {
-                    Text("BR")
-                        .font(.system(size: 20, weight: .bold, design: .serif))
-                        .foregroundColor(Color(hex: "B38B4D")) // Goldish color
-                    
-                    HStack(spacing: 0) {
-                        Rectangle().fill(Color.black).frame(width: 8, height: 3)
-                        Rectangle().fill(Color.red).frame(width: 8, height: 3)
-                        Rectangle().fill(Color.blue).frame(width: 8, height: 3)
-                    }
-                    .padding(.top, 2)
-                }
             }
-            .clipShape(Circle())
             
             Spacer()
             
@@ -104,29 +92,19 @@ struct BankSelectionCard: View {
     
     var body: some View {
         Button(action: onTap) {
-            VStack(spacing: 0) {
-                // Top colored banner
-                HStack {
-                    Text(bank.name)
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.white)
-                    Spacer()
-                }
-                .padding()
-                .background(bank.themeColor)
+            VStack(spacing: 12) {
+                Image("\(bank.id)/logo")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(height: 40)
                 
-                // Bottom white area
-                ZStack {
-                    Color.white
-                    
-                    // Logo representation
-                    Image("\(bank.id)/background")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 80, height: 80)
-                        .padding(.vertical, 10)
-                }
+                Text(bank.shortName)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(.black)
             }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 16)
+            .background(Color.white)
             .cornerRadius(16)
             .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 3)
         }

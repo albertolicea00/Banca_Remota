@@ -87,14 +87,18 @@ struct BankSelectionView: View {
             TopNavBar(themeColor: .white, onMenuTap: onMenuTap)
             
             ScrollView {
-                VStack(spacing: 20) {
-                    ForEach(banks) { bank in
-                        BankSelectionCard(bank: bank) {
-                            onSelectBank(bank)
+                VStack {
+                    HStack(spacing: 15) {
+                        ForEach(banks) { bank in
+                            BankSelectionCard(bank: bank) {
+                                onSelectBank(bank)
+                            }
                         }
                     }
+                    .padding()
+                    
+                    Spacer()
                 }
-                .padding()
             }
             .background(Color(hex: "F8F8F8"))
         }
@@ -109,23 +113,23 @@ struct OperationsListView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            TopNavBar(themeColor: bank.themeColor, onMenuTap: onMenuTap)
+            TopNavBar(themeColor: bank.themeColor, onMenuTap: onMenuTap, bank: bank)
+            
+            // Banner with full bank name
+            HStack {
+                Text(bank.name)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(.black)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background(bank.themeColor)
+            .shadow(color: Color.black.opacity(0.15), radius: 3, x: 0, y: 3)
+            .zIndex(1) // Keep shadow above scrollview
             
             ScrollView {
                 VStack(spacing: 0) {
-                    // Header Area with Bank Logo/Text
-                    ZStack {
-                        Color.white
-                        VStack {
-                                Image(bank.logoName)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 60, height: 60)
-                            .padding(.top, 10)
-                            .padding(.bottom, 20)
-                        }
-                    }
-                    .shadow(color: Color.black.opacity(0.05), radius: 3, x: 0, y: 3)
+                    Spacer().frame(height: 20)
                     
                     // Categorized Operations
                     VStack(spacing: 20) {
@@ -183,7 +187,7 @@ struct SideMenuView: View {
                 // Link Items
                 VStack(alignment: .leading, spacing: 25) {
                     ForEach(banks) { bank in
-                        MenuRow(iconColor: bank.themeColor, imageName: bank.logoName, systemImageName: nil, title: bank.shortName.uppercased(), isSelected: selectedBank?.id == bank.id) {
+                        MenuRow(iconColor: bank.themeColor, imageName: "\(bank.id)/icon", systemImageName: nil, title: bank.shortName.uppercased(), isSelected: selectedBank?.id == bank.id) {
                             onSelectBank(bank)
                         }
                     }
@@ -331,17 +335,17 @@ struct MenuRow: View {
                     Image(imageName)
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(width: 30, height: 30)
+                        .frame(width: 24, height: 24)
                         .cornerRadius(6)
                 } else if let systemName = systemImageName {
                     Image(systemName: systemName)
                         .font(.system(size: 20))
                         .foregroundColor(iconColor)
-                        .frame(width: 30, height: 30)
+                        .frame(width: 24, height: 24)
                 } else {
                     Circle()
                         .fill(iconColor)
-                        .frame(width: 30, height: 30)
+                        .frame(width: 24, height: 24)
                 }
                 
                 Text(title)
