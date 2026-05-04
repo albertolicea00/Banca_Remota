@@ -1,6 +1,7 @@
-import Foundation
-import UIKit
 import CryptoKit
+import SwiftUI
+
+let AppVersion = "2.2.2"
 
 // MARK: - Data Management Service
 class DataService {

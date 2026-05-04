@@ -518,7 +518,7 @@ struct HelpView: View {
 
                     Spacer(minLength: 20)
 
-                    Text("Versión 2.0.1")
+                    Text("Versión \(AppVersion)")
                         .font(.caption)
                         .foregroundColor(.gray)
                         .frame(maxWidth: .infinity)
