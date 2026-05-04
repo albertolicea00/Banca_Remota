@@ -680,6 +680,7 @@ struct ConfigView: View {
     
     @State private var showingPasswordSheet = false
     @State private var tempPassword = ""
+    @State private var showSyncPassword = false
     @State private var showingDisableICloudAlert = false
     
     var body: some View {
@@ -730,53 +731,58 @@ struct ConfigView: View {
                     }
                 }
                 
-                Section(header: Text("Respaldo y Privacidad"), footer: Text("Mantén tus datos sincronizados y seguros. Exporta tus datos para tener una copia de seguridad o impórtalos para restaurar tu información.")) {
-                    Toggle(isOn: $userData.iCloudSyncEnabled) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Label("Sincronización con iCloud", systemImage: "cloud.fill")
-                            Text("Sincroniza tus cuentas y claves entre dispositivos de forma automática.")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    .onChange(of: userData.iCloudSyncEnabled) { newValue in
-                        if newValue && userData.iCloudEncryptionPassword.isEmpty {
-                            showingPasswordSheet = true
-                        } else if !newValue {
-                            showingDisableICloudAlert = true
-                        }
-                    }
-
-                    if userData.iCloudSyncEnabled {
-                        Button(action: { showingPasswordSheet = true }) {
-                            HStack {
-                                Label("Contraseña de Cifrado", systemImage: "lock.shield.fill")
-                                Spacer()
-                                Text(userData.iCloudEncryptionPassword.isEmpty ? "No configurada" : "••••••••")
+                Section(header: Text("Respaldo y Privacidad"), footer: Text(authEnabled ? "Mantén tus datos sincronizados y seguros. Exporta tus datos para tener una copia de seguridad o impórtalos para restaurar tu información." : "⚠️ Debes activar 'Requerir Autenticación' en la sección de Seguridad para usar las funciones de respaldo y sincronización.")) {
+                    Group {
+                        Toggle(isOn: $userData.iCloudSyncEnabled) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Label("Sincronización con iCloud", systemImage: "cloud.fill")
+                                Text("Sincroniza tus cuentas y claves entre dispositivos de forma automática.")
+                                    .font(.caption)
                                     .foregroundColor(.secondary)
                             }
                         }
-                    }
-
-                    Button(action: { showingBackupSheet = true }) {
-                        Label("Exportar Mis Datos (Backup)", systemImage: "square.and.arrow.up")
-                    }
-                    .foregroundColor(.appPrimary)
-
-                    Button(action: { showingImportAlert = true }) {
-                        HStack {
-                            Label("Importar Datos desde Archivo", systemImage: "square.and.arrow.down")
-                            Spacer()
-                            if isImporting {
-                                ProgressView()
-                            } else if showImportSuccess {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.green)
+                        .onChange(of: userData.iCloudSyncEnabled) { newValue in
+                            if newValue && userData.iCloudEncryptionPassword.isEmpty {
+                                showingPasswordSheet = true
+                            } else if !newValue {
+                                showingDisableICloudAlert = true
                             }
                         }
+
+                        if userData.iCloudSyncEnabled {
+                            Button(action: { showingPasswordSheet = true }) {
+                                HStack {
+                                    Label("Contraseña de Cifrado", systemImage: "lock.shield.fill")
+                                    Spacer()
+                                    Text(userData.iCloudEncryptionPassword.isEmpty ? "No configurada" : "••••••••")
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            .foregroundColor(.red)
+                        }
+
+                        Button(action: { showingBackupSheet = true }) {
+                            Label("Exportar Mis Datos (Backup)", systemImage: "square.and.arrow.up")
+                        }
+                        .foregroundColor(authEnabled ? .appPrimary : .secondary)
+
+                        Button(action: { showingImportAlert = true }) {
+                            HStack {
+                                Label("Importar Datos desde Archivo", systemImage: "square.and.arrow.down")
+                                Spacer()
+                                if isImporting {
+                                    ProgressView()
+                                } else if showImportSuccess {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(.green)
+                                }
+                            }
+                        }
+                        .foregroundColor(authEnabled ? .appPrimary : .secondary)
+                        .disabled(isImporting)
                     }
-                    .foregroundColor(.appPrimary)
-                    .disabled(isImporting)
+                    .disabled(!authEnabled)
+                    .opacity(authEnabled ? 1.0 : 0.6)
                 }
 
                 Section(header: Text("Gestión de Datos"), footer: Text("Al importar un archivo o restablecer favoritos, se sobrescribirán los datos actuales correspondientes.")) {
@@ -885,8 +891,26 @@ struct ConfigView: View {
                                     .foregroundColor(.secondary)
                             }
                             
-                            SecureField("Contraseña de Sincronización", text: $tempPassword)
-                                .textContentType(.password)
+                            HStack {
+                                ZStack(alignment: .leading) {
+                                    TextField("Contraseña de Sincronización", text: $tempPassword)
+                                        .textContentType(.password)
+                                        .autocapitalization(.none)
+                                        .disableAutocorrection(true)
+                                        .opacity(showSyncPassword ? 1 : 0)
+                                        .disabled(!showSyncPassword)
+                                    
+                                    SecureField("Contraseña de Sincronización", text: $tempPassword)
+                                        .textContentType(.password)
+                                        .opacity(showSyncPassword ? 0 : 1)
+                                        .disabled(showSyncPassword)
+                                }
+                                
+                                Button(action: { showSyncPassword.toggle() }) {
+                                    Image(systemName: showSyncPassword ? "eye.slash" : "eye")
+                                        .foregroundColor(.secondary)
+                                }
+                            }
                         }
                         
                         Button("Guardar Contraseña") {

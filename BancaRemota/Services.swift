@@ -120,6 +120,51 @@ class CallService {
     }
 }
 
+// MARK: - Keychain Helper
+class KeychainHelper {
+    static let shared = KeychainHelper()
+    
+    func save(_ string: String, service: String, account: String) {
+        guard let data = string.data(using: .utf8) else { return }
+        let query = [
+            kSecClass as String: kSecClassGenericPassword as String,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
+            kSecValueData as String: data
+        ] as [String: Any]
+        
+        SecItemDelete(query as CFDictionary)
+        SecItemAdd(query as CFDictionary, nil)
+    }
+    
+    func read(service: String, account: String) -> String? {
+        let query = [
+            kSecClass as String: kSecClassGenericPassword as String,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
+            kSecReturnData as String: kCFBooleanTrue!,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ] as [String: Any]
+        
+        var dataTypeRef: AnyObject?
+        let status: OSStatus = SecItemCopyMatching(query as CFDictionary, &dataTypeRef)
+        
+        if status == noErr, let data = dataTypeRef as? Data {
+            return String(data: data, encoding: .utf8)
+        }
+        return nil
+    }
+    
+    func delete(service: String, account: String) {
+        let query = [
+            kSecClass as String: kSecClassGenericPassword as String,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account
+        ] as [String: Any]
+        SecItemDelete(query as CFDictionary)
+    }
+}
+
 // MARK: - User Backup Structure
 struct UserBackup: Codable {
     var nautaAccounts: [NautaAccount]?
@@ -134,7 +179,11 @@ class UserDataManager: ObservableObject {
     static let shared = UserDataManager()
     
     @AppStorage("iCloudSyncEnabled") var iCloudSyncEnabled = false
-    @AppStorage("iCloudEncryptionPassword") var iCloudEncryptionPassword = ""
+    @Published var iCloudEncryptionPassword = "" {
+        didSet {
+            KeychainHelper.shared.save(iCloudEncryptionPassword, service: "BancaRemota", account: "SyncPassword")
+        }
+    }
     
     @Published var nautaAccounts: [NautaAccount] = [] { didSet { save() } }
     @Published var bankAccounts: [BankAccount] = [] { didSet { save() } }
@@ -143,6 +192,7 @@ class UserDataManager: ObservableObject {
     @Published var activeSwipeID: UUID? = nil
     
     private init() {
+        iCloudEncryptionPassword = KeychainHelper.shared.read(service: "BancaRemota", account: "SyncPassword") ?? ""
         load()
         setupICloudNotifications()
     }
