@@ -1,6 +1,11 @@
 import SwiftUI
 import LocalAuthentication
 
+struct IdentifiableURL: Identifiable {
+    let id = UUID()
+    let url: URL
+}
+
 enum ActiveScreen: String {
     case home, bank, info, tutorial, config, cuentasBanco, cuentasNauta, misClaves, tasaCambio, cuentasServicios
 }
@@ -658,6 +663,16 @@ struct ConfigView: View {
     @State private var isResetting = false
     @State private var showResetSuccess = false
     
+    @State private var showingBackupSheet = false
+    @State private var showingFilePicker = false
+    @State private var showingImportAlert = false
+    @State private var backupURL: IdentifiableURL? = nil
+    
+    @State private var includeNauta = true
+    @State private var includeBanks = true
+    @State private var includeBills = true
+    @State private var includeKeys = true
+    
     var body: some View {
         VStack(spacing: 0) {
             TopNavBar(themeColor: Color(UIColor.systemBackground), onMenuTap: onMenuTap, title: "Configuración")
@@ -710,6 +725,18 @@ struct ConfigView: View {
                     }
                     .disabled(isResetting)
                 }
+
+                Section(header: Text("Respaldo y Privacidad"), footer: Text("Exporta tus datos para tener una copia de seguridad o impórtalos para restaurar tu información. Ten cuidado al importar, ya que sobrescribirá los datos actuales.")) {
+                    Button(action: { showingBackupSheet = true }) {
+                        Label("Exportar Mis Datos (Backup)", systemImage: "square.and.arrow.up")
+                    }
+                    .foregroundColor(.blue)
+
+                    Button(action: { showingImportAlert = true }) {
+                        Label("Importar Datos desde Archivo", systemImage: "square.and.arrow.down")
+                    }
+                    .foregroundColor(.orange)
+                }
                 
                 Section(header: Text("Seguridad y Autenticación"), footer: Text("Protege el acceso a la aplicación usando la seguridad nativa de tu dispositivo (Face ID, Touch ID o Código).")) {
                     Toggle("Requerir Autenticación", isOn: $pendingAuthEnabled)
@@ -734,6 +761,52 @@ struct ConfigView: View {
                     },
                     secondaryButton: .cancel(Text("Cancelar"))
                 )
+            }
+            .alert("¿Importar datos?", isPresented: $showingImportAlert) {
+                Button("Cancelar", role: .cancel) {}
+                Button("Seleccionar Archivo", role: .destructive) {
+                    showingFilePicker = true
+                }
+            } message: {
+                Text("Esta acción sobrescribirá tus cuentas y claves actuales con los datos del archivo de respaldo. ¿Deseas continuar?")
+            }
+            .sheet(isPresented: $showingBackupSheet) {
+                NavigationView {
+                    Form {
+                        Section(header: Text("Selecciona qué incluir")) {
+                            Toggle("Cuentas Nauta", isOn: $includeNauta)
+                            Toggle("Cuentas Bancarias", isOn: $includeBanks)
+                            Toggle("Cuentas de Servicios", isOn: $includeBills)
+                            Toggle("Mis Claves (PINs/Passwords)", isOn: $includeKeys)
+                        }
+                        
+                        Section(footer: Text("Se generará un archivo JSON con los datos seleccionados que podrás guardar o compartir.")) {
+                            Button(action: {
+                                if let url = UserDataManager.shared.createBackup(includeNauta: includeNauta, includeBanks: includeBanks, includeBills: includeBills, includeKeys: includeKeys) {
+                                    backupURL = IdentifiableURL(url: url)
+                                    showingBackupSheet = false
+                                }
+                            }) {
+                                Label("Generar Archivo de Respaldo", systemImage: "doc.badge.plus")
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.appPrimary)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(10)
+                            }
+                        }
+                    }
+                    .navigationTitle("Exportar Datos")
+                    .navigationBarItems(trailing: Button("Cerrar") { showingBackupSheet = false })
+                }
+            }
+            .sheet(item: $backupURL) { item in
+                ActivityView(activityItems: [item.url])
+            }
+            .sheet(isPresented: $showingFilePicker) {
+                DocumentPicker { url in
+                    _ = UserDataManager.shared.importBackup(from: url)
+                }
             }
             .onChange(of: pendingAuthEnabled) { newValue in
                 guard newValue != authEnabled else { return }

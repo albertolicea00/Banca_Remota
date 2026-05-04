@@ -119,6 +119,15 @@ class CallService {
     }
 }
 
+// MARK: - User Backup Structure
+struct UserBackup: Codable {
+    var nautaAccounts: [NautaAccount]?
+    var bankAccounts: [BankAccount]?
+    var bills: [Bill]?
+    var userKeys: [UserKey]?
+    var timestamp: Date = Date()
+}
+
 // MARK: - User Data Service (CRUD)
 class UserDataManager: ObservableObject {
     static let shared = UserDataManager()
@@ -131,6 +140,40 @@ class UserDataManager: ObservableObject {
     
     private init() {
         load()
+    }
+    
+    func createBackup(includeNauta: Bool, includeBanks: Bool, includeBills: Bool, includeKeys: Bool) -> URL? {
+        let backup = UserBackup(
+            nautaAccounts: includeNauta ? nautaAccounts : nil,
+            bankAccounts: includeBanks ? bankAccounts : nil,
+            bills: includeBills ? bills : nil,
+            userKeys: includeKeys ? userKeys : nil
+        )
+        
+        guard let data = try? JSONEncoder().encode(backup) else { return nil }
+        
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd_HHmm"
+        let dateString = formatter.string(from: Date())
+        let fileName = "BancaRemota_Backup_\(dateString).json"
+        
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+        try? data.write(to: tempURL)
+        return tempURL
+    }
+    
+    func importBackup(from url: URL) -> Bool {
+        guard let data = try? Data(contentsOf: url),
+              let backup = try? JSONDecoder().decode(UserBackup.self, from: data) else {
+            return false
+        }
+        
+        if let nauta = backup.nautaAccounts { self.nautaAccounts = nauta }
+        if let banks = backup.bankAccounts { self.bankAccounts = banks }
+        if let bills = backup.bills { self.bills = bills }
+        if let keys = backup.userKeys { self.userKeys = keys }
+        
+        return true
     }
     
     private func save() {
