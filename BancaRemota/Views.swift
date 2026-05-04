@@ -670,7 +670,7 @@ struct ConfigView: View {
                         Text("Modo Oscuro").tag(2)
                     }
                     
-                    Toggle("Modo Liquid Glass", isOn: $liquidGlass)
+                    // Toggle("Modo Liquid Glass", isOn: $liquidGlass)
                     
                     Toggle("Usar color de acento personalizado", isOn: $useCustomFavoriteColor)
                     if useCustomFavoriteColor {
