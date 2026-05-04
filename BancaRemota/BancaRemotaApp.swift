@@ -14,6 +14,7 @@ struct BancaRemotaApp: App {
             ZStack {
                 MainView()
                     .preferredColorScheme(darkModePreference == 1 ? .light : (darkModePreference == 2 ? .dark : nil))
+                    .id("\(useCustomFavoriteColor)_\(favoriteCustomColorHex)")
                 
                 if !authManager.isAuthenticated {
                     Color(UIColor.systemBackground).ignoresSafeArea()

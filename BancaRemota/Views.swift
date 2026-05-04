@@ -1,25 +1,20 @@
 import SwiftUI
 import LocalAuthentication
 
-enum ActiveScreen {
-    case home
-    case bank
-    case info
-    case tutorial
-    case config
-    case cuentasBanco
-    case cuentasNauta
-    case misClaves
-    case tasaCambio
-    case cuentasServicios
+enum ActiveScreen: String {
+    case home, bank, info, tutorial, config, cuentasBanco, cuentasNauta, misClaves, tasaCambio, cuentasServicios
 }
 
 // MARK: - Navigation Hub View
 struct MainView: View {
     @State private var config: BankConfig?
-    @State private var selectedBank: Bank?
+    @AppStorage("selectedBankID") private var selectedBankID: String = ""
     @State private var isMenuOpen = false
-    @State private var activeScreen: ActiveScreen = .home
+    @AppStorage("activeScreen") private var activeScreen: ActiveScreen = .home
+    
+    private var selectedBank: Bank? {
+        config?.banks.first { $0.id == selectedBankID }
+    }
     
     var body: some View {
         ZStack(alignment: .leading) {
@@ -39,10 +34,10 @@ struct MainView: View {
                         }
                     case .home:
                         BankSelectionView(banks: config.banks, onSelectBank: { bank in
-                            selectedBank = bank
+                            selectedBankID = bank.id
                             activeScreen = .bank
                         }, onSelectScreen: { screen in
-                            selectedBank = nil
+                            selectedBankID = ""
                             activeScreen = screen
                         }, onMenuTap: { withAnimation { isMenuOpen.toggle() } })
                     case .cuentasNauta:
@@ -89,12 +84,12 @@ struct MainView: View {
                     selectedBank: selectedBank,
                     activeScreen: activeScreen,
                     onSelectHome: {
-                        selectedBank = nil
+                        selectedBankID = ""
                         activeScreen = .home
                         withAnimation { isMenuOpen = false }
                     },
                     onSelectBank: { bank in
-                        selectedBank = bank
+                        selectedBankID = bank.id
                         activeScreen = .bank
                         withAnimation { isMenuOpen = false }
                     },
@@ -111,7 +106,7 @@ struct MainView: View {
                         withAnimation { isMenuOpen = false }
                     },
                     onSelectScreen: { screen in
-                        selectedBank = nil
+                        selectedBankID = ""
                         activeScreen = screen
                         withAnimation { isMenuOpen = false }
                     }
