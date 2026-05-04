@@ -640,6 +640,7 @@ struct TutorialView: View {
 struct ConfigView: View {
     let banks: [Bank]
     let onMenuTap: () -> Void
+    @ObservedObject var userData = UserDataManager.shared
     
     @AppStorage("darkModePreference") private var darkMode: Int = 0 // 0 = Default, 1 = Light, 2 = Dark
     @AppStorage("liquidGlassEnabled") private var liquidGlass = false
@@ -677,6 +678,10 @@ struct ConfigView: View {
     @State private var showImportSuccess = false
     @State private var showImportError = false
     
+    @State private var showingPasswordSheet = false
+    @State private var tempPassword = ""
+    @State private var showingDisableICloudAlert = false
+    
     var body: some View {
         VStack(spacing: 0) {
             TopNavBar(themeColor: Color(UIColor.systemBackground), onMenuTap: onMenuTap, title: "Configuración")
@@ -711,7 +716,70 @@ struct ConfigView: View {
                     //     .disabled(!showBanksInFavorites)
                 }
                 
-                Section(header: Text("Gestión de Datos")) {
+                Section(header: Text("Seguridad y Autenticación"), footer: Text("Protege el acceso a la aplicación usando la seguridad nativa de tu dispositivo (Face ID, Touch ID o Código).")) {
+                    Toggle("Requerir Autenticación", isOn: $pendingAuthEnabled)
+                    
+                    if authEnabled {
+                        Picker("Expirar Sesión", selection: $authExpiration) {
+                            Text("Inmediato").tag(0.0)
+                            Text("En 30 segundos").tag(0.5)
+                            Text("En 1 minuto").tag(1.0)
+                            Text("En 5 minutes").tag(5.0)
+                            Text("En 15 minutes").tag(15.0)
+                        }
+                    }
+                }
+                
+                Section(header: Text("Respaldo y Privacidad"), footer: Text("Mantén tus datos sincronizados y seguros. Exporta tus datos para tener una copia de seguridad o impórtalos para restaurar tu información.")) {
+                    Toggle(isOn: $userData.iCloudSyncEnabled) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Label("Sincronización con iCloud", systemImage: "cloud.fill")
+                            Text("Sincroniza tus cuentas y claves entre dispositivos de forma automática.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .onChange(of: userData.iCloudSyncEnabled) { newValue in
+                        if newValue && userData.iCloudEncryptionPassword.isEmpty {
+                            showingPasswordSheet = true
+                        } else if !newValue {
+                            showingDisableICloudAlert = true
+                        }
+                    }
+
+                    if userData.iCloudSyncEnabled {
+                        Button(action: { showingPasswordSheet = true }) {
+                            HStack {
+                                Label("Contraseña de Cifrado", systemImage: "lock.shield.fill")
+                                Spacer()
+                                Text(userData.iCloudEncryptionPassword.isEmpty ? "No configurada" : "••••••••")
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+
+                    Button(action: { showingBackupSheet = true }) {
+                        Label("Exportar Mis Datos (Backup)", systemImage: "square.and.arrow.up")
+                    }
+                    .foregroundColor(.appPrimary)
+
+                    Button(action: { showingImportAlert = true }) {
+                        HStack {
+                            Label("Importar Datos desde Archivo", systemImage: "square.and.arrow.down")
+                            Spacer()
+                            if isImporting {
+                                ProgressView()
+                            } else if showImportSuccess {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
+                            }
+                        }
+                    }
+                    .foregroundColor(.appPrimary)
+                    .disabled(isImporting)
+                }
+
+                Section(header: Text("Gestión de Datos"), footer: Text("Al importar un archivo o restablecer favoritos, se sobrescribirán los datos actuales correspondientes.")) {
                     Button(action: {
                         showingResetAlert = true
                     }) {
@@ -728,42 +796,6 @@ struct ConfigView: View {
                         .foregroundColor(.appPrimary)
                     }
                     .disabled(isResetting)
-                }
-
-                Section(header: Text("Respaldo y Privacidad"), footer: Text("Exporta tus datos para tener una copia de seguridad o impórtalos para restaurar tu información. Ten cuidado al importar, ya que sobrescribirá los datos actuales.")) {
-                    Button(action: { showingBackupSheet = true }) {
-                        Label("Exportar Mis Datos (Backup)", systemImage: "square.and.arrow.up")
-                    }
-                    .foregroundColor(.blue)
-
-                    Button(action: { showingImportAlert = true }) {
-                        HStack {
-                            Label("Importar Datos desde Archivo", systemImage: "square.and.arrow.down")
-                            Spacer()
-                            if isImporting {
-                                ProgressView()
-                            } else if showImportSuccess {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.green)
-                            }
-                        }
-                    }
-                    .foregroundColor(.orange)
-                    .disabled(isImporting)
-                }
-                
-                Section(header: Text("Seguridad y Autenticación"), footer: Text("Protege el acceso a la aplicación usando la seguridad nativa de tu dispositivo (Face ID, Touch ID o Código).")) {
-                    Toggle("Requerir Autenticación", isOn: $pendingAuthEnabled)
-                    
-                    if authEnabled {
-                        Picker("Expirar Sesión", selection: $authExpiration) {
-                            Text("Inmediato").tag(0.0)
-                            Text("En 30 segundos").tag(0.5)
-                            Text("En 1 minuto").tag(1.0)
-                            Text("En 5 minutos").tag(5.0)
-                            Text("En 15 minutos").tag(15.0)
-                        }
-                    }
                 }
             }
             .alert(isPresented: $showingResetAlert) {
@@ -838,6 +870,48 @@ struct ConfigView: View {
                         }
                     }
                 }
+            }
+            .sheet(isPresented: $showingPasswordSheet) {
+                NavigationView {
+                    Form {
+                        Section(header: Text("Cifrado Extremo a Extremo"), footer: Text("Esta contraseña se usará para cifrar tus datos antes de enviarlos a iCloud. Deberás introducir la misma contraseña en tus otros dispositivos para poder sincronizar los datos.")) {
+                            HStack {
+                                Text("Servicio")
+                                Spacer()
+                                TextField("", text: .constant("BancaRemota_CloudSync"))
+                                    .textContentType(.username)
+                                    .disabled(true)
+                                    .multilineTextAlignment(.trailing)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            SecureField("Contraseña de Sincronización", text: $tempPassword)
+                                .textContentType(.password)
+                        }
+                        
+                        Button("Guardar Contraseña") {
+                            userData.iCloudEncryptionPassword = tempPassword
+                            showingPasswordSheet = false
+                            // Trigger a save to push encrypted data to iCloud
+                            UserDataManager.shared.iCloudSyncEnabled = true 
+                        }
+                        .disabled(tempPassword.count < 4)
+                        .frame(maxWidth: .infinity)
+                        .multilineTextAlignment(.center)
+                    }
+                    .navigationTitle("Configurar Cifrado")
+                    .navigationBarItems(leading: Button("Cancelar") { 
+                        if userData.iCloudEncryptionPassword.isEmpty {
+                            userData.iCloudSyncEnabled = false
+                        }
+                        showingPasswordSheet = false 
+                    })
+                }
+            }
+            .alert("Sincronización desactivada", isPresented: $showingDisableICloudAlert) {
+                Button("Entendido", role: .cancel) {}
+            } message: {
+                Text("La aplicación dejará de enviar y recibir cambios de iCloud. Tus datos actuales se mantendrán en este dispositivo, pero no se actualizarán en otros dispositivos hasta que vuelvas a activarla.")
             }
             .alert("Error de Importación", isPresented: $showImportError) {
                 Button("OK", role: .cancel) {}
