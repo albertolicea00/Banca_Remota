@@ -424,7 +424,7 @@ struct HelpView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 25) {
                     Group {
-                        HelpSection(title: "Sobre la Aplicación", content: "Banca Remota es una utilidad nativa para iPhone diseñada para usuarios de la banca cubana. Permite ejecutar operaciones bancarias mediante códigos USSD directamente desde el marcador del teléfono, sin necesidad de internet.\n\nCompatible con bancos cubanos que ofrezcan servicios USSD. Incluye además un gestor local de tarjetas, cuentas Nauta, facturas de servicios y contraseñas.")
+                        HelpSection(title: "Sobre la Aplicación", content: "Banca Remota es una utilidad nativa para iPhone que permite ejecutar operaciones bancarias en Cuba mediante códigos USSD sin necesidad de internet. Incluye un gestor local para tarjetas, cuentas nauta, cuentas de servicios y contraseñas.")
 
                         HelpSection(title: "¿Qué es USSD?", content: "USSD (Servicio Suplementario de Datos No Estructurados) es un protocolo de telefonía que permite interactuar con el banco marcando códigos especiales como *5#. No requiere datos móviles ni Wi-Fi, funciona con cualquier señal de voz.\n\nAl tocar una operación en la app, se abre automáticamente el marcador del sistema con el código correspondiente listo para marcar.")
 
@@ -483,16 +483,11 @@ struct HelpView: View {
                                     showingShareSheet = true
                                 }
                             }) {
-                                Label("Descargar Base de Datos (JSON)", systemImage: "doc.text.fill")
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.white)
-                                    .padding(.vertical, 10)
-                                    .padding(.horizontal, 16)
-                                    .background(Color.appPrimary)
-                                    .cornerRadius(8)
+                                Label("Exportar BBDD de códigos USSD", systemImage: "square.and.arrow.up")
+                                    .font(.body)
+                                    .foregroundColor(.blue)
                             }
-                            .padding(.top, 5)
+                            .padding(.top, 2)
 
                             Divider().padding(.top, 10)
                         }
