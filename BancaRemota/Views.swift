@@ -626,6 +626,10 @@ struct TutorialView: View {
                     HelpSection(title: "Mis Claves", content: "Guarda PINs, contraseñas y claves de forma local. Esta sección solo está disponible si tienes activada la autenticación biométrica en Configuración, como medida de seguridad adicional.")
 
                     HelpSection(title: "Autenticación", content: "Desde Configuración puedes activar Face ID / Touch ID para proteger la entrada a la app. También puedes ajustar el tiempo de expiración de sesión (desde inmediato hasta 15 minutos).")
+                    
+                    HelpSection(title: "Respaldo de Datos", content: "En Configuración puedes generar archivos de respaldo (.json) para exportar tus cuentas y claves. Puedes guardar estos archivos en tu dispositivo o compartirlos. Para restaurar tu información, utiliza el botón 'Importar' y selecciona tu archivo de respaldo.")
+
+                    HelpSection(title: "Sincronización y Cifrado", content: "Activa 'Sincronización con iCloud' en Configuración para mantener tus datos sincronizados entre todos tus dispositivos Apple. Deberás configurar una contraseña de cifrado: tus datos se cifran localmente antes de subirse a la nube, garantizando que solo tú puedas acceder a ellos.")
 
                     Spacer()
                 }
