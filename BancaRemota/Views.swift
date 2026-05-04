@@ -60,7 +60,15 @@ struct MainView: View {
                     ProgressView("Loading Configuration...")
                         .onAppear {
                             // Initial configuration load
-                            self.config = DataService.shared.loadConfiguration()
+                            if let loadedConfig = DataService.shared.loadConfiguration() {
+                                self.config = loadedConfig
+                                
+                                // Setup default favorites if it's the first run
+                                if !UserDefaults.standard.bool(forKey: "didSetupDefaultFavorites") {
+                                    FavoritesManager.shared.loadDefaults(from: loadedConfig.banks)
+                                    UserDefaults.standard.set(true, forKey: "didSetupDefaultFavorites")
+                                }
+                            }
                         }
                 }
             }
