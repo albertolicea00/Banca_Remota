@@ -650,7 +650,7 @@ struct ConfigView: View {
                 Section(header: Text("General y Preferencias")) {
                     Toggle("Aviso de estado de conexión", isOn: $showNetworkStatus)
                     Toggle("Mostrar nombre de banco en vez de icono", isOn: $useBankNameInsteadOfIcon)
-                    Toggle("Mostrar atajos de menú en favoritos", isOn: $showShortcutsInFavorites)
+                    // Toggle("Mostrar atajos de menú en favoritos", isOn: $showShortcutsInFavorites)
                     // Toggle("Mostrar bancos en favoritos", isOn: $showBanksInFavorites)
                     // Toggle("Usar bancos en favoritos como inicio de sesión", isOn: $useBanksAsLogin)
                     //     .disabled(!showBanksInFavorites)
