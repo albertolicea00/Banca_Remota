@@ -498,16 +498,16 @@ struct HelpView: View {
                                 .foregroundColor(.appPrimary)
 
                             VStack(alignment: .leading, spacing: 8) {
-                                Label("Sin conexión a internet", systemImage: "wifi.slash")
-                                Label("Sin servidores ni cuentas de usuario", systemImage: "server.rack")
+                                Label("Cifrado militar (AES-GCM) para la nube", systemImage: "lock.shield")
+                                Label("Sin servidores ni cuentas externas", systemImage: "server.rack")
+                                Label("Tú controlas tus archivos de respaldo", systemImage: "archivebox")
                                 Label("Sin publicidad ni rastreo", systemImage: "eye.slash")
-                                Label("Todos los datos se guardan solo en tu dispositivo", systemImage: "iphone.and.arrow.right.inward")
-                                Label("La sección de Claves requiere autenticación biométrica", systemImage: "faceid")
+                                Label("Acceso protegido por Face ID / Touch ID", systemImage: "faceid")
                             }
                             .font(.subheadline)
                             .foregroundColor(.secondary)
 
-                            Text("La app no transmite, sincroniza ni respalda ningún dato en la nube. Todo permanece en el almacenamiento local de tu iPhone, protegido por el sistema operativo iOS.")
+                            Text("Tus datos están protegidos localmente por iOS. Si habilitas la sincronización con iCloud, la app cifra tu información con tu contraseña personal de forma que solo tú (y nadie más, ni siquiera Apple) pueda ver tus datos.")
                                 .font(.caption)
                                 .foregroundColor(.gray)
                                 .padding(.top, 4)
