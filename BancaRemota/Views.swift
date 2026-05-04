@@ -673,6 +673,10 @@ struct ConfigView: View {
     @State private var includeBills = true
     @State private var includeKeys = true
     
+    @State private var isImporting = false
+    @State private var showImportSuccess = false
+    @State private var showImportError = false
+    
     var body: some View {
         VStack(spacing: 0) {
             TopNavBar(themeColor: Color(UIColor.systemBackground), onMenuTap: onMenuTap, title: "Configuración")
@@ -733,9 +737,19 @@ struct ConfigView: View {
                     .foregroundColor(.blue)
 
                     Button(action: { showingImportAlert = true }) {
-                        Label("Importar Datos desde Archivo", systemImage: "square.and.arrow.down")
+                        HStack {
+                            Label("Importar Datos desde Archivo", systemImage: "square.and.arrow.down")
+                            Spacer()
+                            if isImporting {
+                                ProgressView()
+                            } else if showImportSuccess {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
+                            }
+                        }
                     }
                     .foregroundColor(.orange)
+                    .disabled(isImporting)
                 }
                 
                 Section(header: Text("Seguridad y Autenticación"), footer: Text("Protege el acceso a la aplicación usando la seguridad nativa de tu dispositivo (Face ID, Touch ID o Código).")) {
@@ -805,8 +819,30 @@ struct ConfigView: View {
             }
             .sheet(isPresented: $showingFilePicker) {
                 DocumentPicker { url in
-                    _ = UserDataManager.shared.importBackup(from: url)
+                    isImporting = true
+                    showImportSuccess = false
+                    showImportError = false
+                    
+                    // Small delay to simulate processing and give visual feedback
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                        let success = UserDataManager.shared.importBackup(from: url)
+                        isImporting = false
+                        if success {
+                            showImportSuccess = true
+                            // Clear success icon after a few seconds
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                                showImportSuccess = false
+                            }
+                        } else {
+                            showImportError = true
+                        }
+                    }
                 }
+            }
+            .alert("Error de Importación", isPresented: $showImportError) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("No se pudo leer el archivo de respaldo. Asegúrate de que sea un archivo válido generado por esta aplicación.")
             }
             .onChange(of: pendingAuthEnabled) { newValue in
                 guard newValue != authEnabled else { return }
