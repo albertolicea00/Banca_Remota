@@ -258,8 +258,8 @@ struct BankSelectionView: View {
                         
                         Button(action: { isShowingAddFavorite = true }) {
                             HStack {
-                                Image(systemName: "plus.circle.fill")
-                                Text("Agregar operación favorita")
+                                Image(systemName: "pencil.circle.fill")
+                                Text("Editar operaciones favoritas")
                             }
                             .font(.system(size: 16, weight: .bold))
                             .foregroundColor(.appPrimary)
@@ -827,6 +827,14 @@ struct AddFavoriteOperationView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
+                // Help text
+                Text("Toca una operación para marcarla o desmarcarla como favorita.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal)
+                    .padding(.top, 5)
+                    .padding(.leading, -5)
+
                 // Search Bar
                 HStack {
                     Image(systemName: "magnifyingglass")
@@ -901,7 +909,7 @@ struct AddFavoriteOperationView: View {
                     }
                 }
             }
-            .navigationTitle("Agregar Favorito")
+            .navigationTitle("Editar Favoritos")
             .navigationBarItems(trailing: Button("Cerrar") {
                 presentationMode.wrappedValue.dismiss()
             })
