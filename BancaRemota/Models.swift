@@ -43,7 +43,11 @@ struct BankOperation: Codable, Identifiable {
 
 // MARK: - Color Hex Initialization Extension
 extension Color {
-    static let appPrimary = Color(hex: "B38B4D")
+    static var appPrimary: Color {
+        let useCustom = UserDefaults.standard.bool(forKey: "useCustomFavoriteColor")
+        let hex = UserDefaults.standard.string(forKey: "favoriteCustomColorHex") ?? "B38B4D"
+        return useCustom ? Color(hex: hex) : Color(hex: "B38B4D")
+    }
     
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)

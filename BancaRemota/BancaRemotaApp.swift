@@ -5,6 +5,8 @@ import SwiftUI
 struct BancaRemotaApp: App {
     @AppStorage("darkModePreference") private var darkModePreference: Int = 0
     @Environment(\.scenePhase) private var scenePhase
+    @AppStorage("useCustomFavoriteColor") private var useCustomFavoriteColor = true
+    @AppStorage("favoriteCustomColorHex") private var favoriteCustomColorHex = "B38B4D"
     @StateObject private var authManager = AuthManager.shared
     
     var body: some Scene {

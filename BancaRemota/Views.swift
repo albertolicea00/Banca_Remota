@@ -233,8 +233,10 @@ struct BankSelectionView: View {
                         if !favoritesManager.favoriteOperations.isEmpty {
                             ForEach(favoritesManager.favoriteOperations) { fav in
                                 if let bank = banks.first(where: { $0.id == fav.bankId }) {
-                                    let theme = useCustomFavoriteColor ? Color(hex: favoriteCustomColorHex) : bank.themeColor
-                                    let textColor = useCustomFavoriteColor ? .white : bank.textColor
+                                    // let theme = useCustomFavoriteColor ? .appPrimary : bank.themeColor
+                                    // let textColor = useCustomFavoriteColor ? .white
+                                    let theme = Color.appPrimary
+                                    let textColor = Color.white
                                     OperationCard(operation: fav.operation, themeColor: theme, textColor: textColor) {
                                         CallService.shared.executeUSSD(code: fav.operation.ussdCode)
                                     }
@@ -404,6 +406,8 @@ struct SideMenuView: View {
 // MARK: - Help and About View
 struct HelpView: View {
     let onMenuTap: () -> Void
+    @State private var showingShareSheet = false
+    @State private var shareURL: URL? = nil
     
     var body: some View {
         VStack(spacing: 0) {
@@ -457,6 +461,35 @@ struct HelpView: View {
                         }
 
                         VStack(alignment: .leading, spacing: 10) {
+                            Text("Datos de la Aplicación")
+                                .font(.headline)
+                                .foregroundColor(.appPrimary)
+
+                            Text("La aplicación utiliza una base de datos local para los códigos USSD. Puedes descargar este archivo para revisarlo o compartirlo.")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+
+                            Button(action: {
+                                if let url = Bundle.main.url(forResource: "codes", withExtension: "json") {
+                                    shareURL = url
+                                    showingShareSheet = true
+                                }
+                            }) {
+                                Label("Descargar Base de Datos (JSON)", systemImage: "doc.text.fill")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.white)
+                                    .padding(.vertical, 10)
+                                    .padding(.horizontal, 16)
+                                    .background(Color.appPrimary)
+                                    .cornerRadius(8)
+                            }
+                            .padding(.top, 5)
+
+                            Divider().padding(.top, 10)
+                        }
+
+                        VStack(alignment: .leading, spacing: 10) {
                             Text("Privacidad y Seguridad")
                                 .font(.headline)
                                 .foregroundColor(.appPrimary)
@@ -490,6 +523,11 @@ struct HelpView: View {
                 .padding(25)
             }
             .background(Color(UIColor.systemGroupedBackground))
+            .sheet(isPresented: $showingShareSheet) {
+                if let url = shareURL {
+                    ActivityView(activityItems: [url])
+                }
+            }
         }
     }
 }
@@ -636,9 +674,9 @@ struct ConfigView: View {
                     
                     Toggle("Modo Liquid Glass", isOn: $liquidGlass)
                     
-                    Toggle("Usar color personalizado en favoritos", isOn: $useCustomFavoriteColor)
+                    Toggle("Usar color de acento personalizado", isOn: $useCustomFavoriteColor)
                     if useCustomFavoriteColor {
-                        ColorPicker("Color de favoritos", selection: $selectedFavoriteColor)
+                        ColorPicker("Color de acento global", selection: $selectedFavoriteColor)
                             .onChange(of: selectedFavoriteColor) { newColor in
                                 if let hex = newColor.toHex() {
                                     favoriteCustomColorHex = hex
@@ -1007,7 +1045,7 @@ struct BankAccountsListView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.blue)
+                    .background(Color.appPrimary)
                     .cornerRadius(12)
                     .padding()
             }
@@ -1078,7 +1116,7 @@ struct BillsListView: View {
                                     subtitle: bill.type.rawValue,
                                     value: bill.billNumber,
                                     iconName: bill.type.iconName,
-                                    backgroundColor: .orange,
+                                    backgroundColor: .appPrimary,
                                     onEdit: { billToEdit = bill },
                                     onDelete: { 
                                         billToDelete = bill
@@ -1102,7 +1140,7 @@ struct BillsListView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.orange)
+                    .background(Color.appPrimary)
                     .cornerRadius(12)
                     .padding()
             }
@@ -1179,7 +1217,7 @@ struct KeysListView: View {
                                         subtitle: key.category == .other ? (key.customCategory ?? "Otros") : key.category.rawValue,
                                         value: key.value,
                                         iconName: key.category.iconName,
-                                        backgroundColor: .purple,
+                                        backgroundColor: .appPrimary,
                                         onEdit: { keyToEdit = key },
                                         onDelete: {
                                             keyToDelete = key
@@ -1203,7 +1241,7 @@ struct KeysListView: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.purple)
+                        .background(Color.appPrimary)
                         .cornerRadius(12)
                         .padding()
                 }
