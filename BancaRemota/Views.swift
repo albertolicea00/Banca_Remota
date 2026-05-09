@@ -171,36 +171,36 @@ struct BankSelectionView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 30) {
 
-                    if showShortcutsInFavorites {
-                        VStack(alignment: .leading, spacing: 15) {
-                            Text("Atajos de Menú")
-                                .font(.headline)
-                                .foregroundColor(.secondary)
-                                .padding(.horizontal)
+                    // if showShortcutsInFavorites {
+                    //     VStack(alignment: .leading, spacing: 15) {
+                    //         Text("Atajos de Menú")
+                    //             .font(.headline)
+                    //             .foregroundColor(.secondary)
+                    //             .padding(.horizontal)
                             
-                            ScrollViewReader { proxy in
-                                ScrollView(.horizontal, showsIndicators: false) {
-                                    HStack(spacing: 20) {
-                                        MenuShortcutCard(iconName: "doc.text.fill", title: "Servicios", themeColor: .appPrimary) { onSelectScreen(.cuentasServicios) }.id(1)
-                                        MenuShortcutCard(iconName: "wifi", title: "Nauta", themeColor: .appPrimary) { onSelectScreen(.cuentasNauta) }.id(2)
-                                        MenuShortcutCard(iconName: "building.columns.fill", title: "Cuentas", themeColor: .appPrimary) { onSelectScreen(.cuentasBanco) }.id(3)
-                                        MenuShortcutCard(iconName: "key.fill", title: "Claves", themeColor: .appPrimary) { onSelectScreen(.misClaves) }.id(4)
-                                        MenuShortcutCard(iconName: "arrow.left.arrow.right", title: "Cambio", themeColor: .appPrimary) { onSelectScreen(.tasaCambio) }.id(5)
-                                    }
-                                    .padding(.horizontal)
-                                    .padding(.bottom, 10)
-                                }
-                                .onAppear {
-                                    DispatchQueue.main.async {
-                                        proxy.scrollTo(2, anchor: .center)
-                                    }
-                                }
-                            }
-                        }
-                        .padding(.top, showBanksInFavorites ? 0 : 20)
-                    }
+                    //         ScrollViewReader { proxy in
+                    //             ScrollView(.horizontal, showsIndicators: false) {
+                    //                 HStack(spacing: 20) {
+                    //                     MenuShortcutCard(iconName: "doc.text.fill", title: "Servicios", themeColor: .appPrimary) { onSelectScreen(.cuentasServicios) }.id(1)
+                    //                     MenuShortcutCard(iconName: "wifi", title: "Nauta", themeColor: .appPrimary) { onSelectScreen(.cuentasNauta) }.id(2)
+                    //                     MenuShortcutCard(iconName: "building.columns.fill", title: "Cuentas", themeColor: .appPrimary) { onSelectScreen(.cuentasBanco) }.id(3)
+                    //                     MenuShortcutCard(iconName: "key.fill", title: "Claves", themeColor: .appPrimary) { onSelectScreen(.misClaves) }.id(4)
+                    //                     MenuShortcutCard(iconName: "arrow.left.arrow.right", title: "Cambio", themeColor: .appPrimary) { onSelectScreen(.tasaCambio) }.id(5)
+                    //                 }
+                    //                 .padding(.horizontal)
+                    //                 .padding(.bottom, 10)
+                    //             }
+                    //             .onAppear {
+                    //                 DispatchQueue.main.async {
+                    //                     proxy.scrollTo(2, anchor: .center)
+                    //                 }
+                    //             }
+                    //         }
+                    //     }
+                    //     .padding(.top, showBanksInFavorites ? 0 : 20)
+                    // }
 
-                    if showBanksInFavorites {
+                    // if showBanksInFavorites { 
                         VStack(alignment: .leading, spacing: 15) {
                             HStack(alignment: .bottom) {
                                 Text("Mis Bancos")
@@ -215,22 +215,25 @@ struct BankSelectionView: View {
                             .foregroundColor(.secondary)
                             .padding(.horizontal)
                             
-                            HStack(spacing: 15) {
-                                ForEach(banks) { bank in
-                                    BankSelectionCard(bank: bank) {
-                                        if useBanksAsLogin,
-                                           let authOp = bank.categories.flatMap({ $0.operations }).first(where: { $0.isLogin == true }) {
-                                            CallService.shared.executeUSSD(code: authOp.ussdCode)
-                                        } else {
-                                            onSelectBank(bank)
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 15) {
+                                    ForEach(banks) { bank in
+                                        BankSelectionCard(bank: bank) {
+                                            if useBanksAsLogin,
+                                               let authOp = bank.categories.flatMap({ $0.operations }).first(where: { $0.isLogin == true }) {
+                                                CallService.shared.executeUSSD(code: authOp.ussdCode)
+                                            } else {
+                                                onSelectBank(bank)
+                                            }
                                         }
+                                        .frame(width: 100)
                                     }
                                 }
+                                .padding(.horizontal)
                             }
-                            .padding(.horizontal)
                         }
                         .padding(.top, 20)
-                    }
+                    // }
                     
                     VStack(alignment: .leading, spacing: 15) {
                         Text("Operaciones Favoritas")
@@ -239,26 +242,43 @@ struct BankSelectionView: View {
                             .padding(.horizontal)
                         
                         if !favoritesManager.favoriteOperations.isEmpty {
-                            ForEach(favoritesManager.favoriteOperations) { fav in
-                                if let bank = banks.first(where: { $0.id == fav.bankId }) {
-                                    // let theme = useCustomFavoriteColor ? .appPrimary : bank.themeColor
-                                    // let textColor = useCustomFavoriteColor ? .white
-                                    let theme = Color.appPrimary
-                                    let textColor = Color.white
-                                    OperationCard(operation: fav.operation, themeColor: theme, textColor: textColor) {
-                                        CallService.shared.executeUSSD(code: fav.operation.ussdCode)
+                            LazyVStack(spacing: 12) {
+                                ForEach(favoritesManager.favoriteOperations) { fav in
+                                    if let bank = banks.first(where: { $0.id == fav.bankId }) {
+                                        let theme = Color.appPrimary
+                                        let textColor = Color.white
+                                        OperationCard(operation: fav.operation, themeColor: theme, textColor: textColor) {
+                                            CallService.shared.executeUSSD(code: fav.operation.ussdCode)
+                                        }
+                                        .onDrag {
+                                            self.draggedItem = fav
+                                            return NSItemProvider(object: fav.id as NSString)
+                                        }
+                                        .onDrop(of: [.plainText], delegate: FavoriteDropDelegate(item: fav, items: Binding(
+                                            get: { favoritesManager.favoriteOperations },
+                                            set: { favoritesManager.favoriteOperations = $0 }
+                                        ), draggedItem: $draggedItem))
                                     }
-                                    .padding(.horizontal)
-                                    .onDrag {
-                                        self.draggedItem = fav
-                                        return NSItemProvider(object: fav.id as NSString)
-                                    }
-                                    .onDrop(of: [.plainText], delegate: FavoriteDropDelegate(item: fav, items: Binding(
-                                        get: { favoritesManager.favoriteOperations },
-                                        set: { favoritesManager.favoriteOperations = $0 }
-                                    ), draggedItem: $draggedItem))
                                 }
                             }
+                            .padding(.horizontal)
+                        } else {
+                            // Empty state
+                            VStack(spacing: 10) {
+                                Image(systemName: "star.slash")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(.gray)
+                                Text("No tienes operaciones favoritas")
+                                    .font(.headline)
+                                    .foregroundColor(.gray)
+                                Text("Añade las operaciones que más usas para acceder rápido.")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal, 40)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 40)
                         }
                         
                         Button(action: { isShowingAddFavorite = true }) {
@@ -304,24 +324,29 @@ struct OperationsListView: View {
                     Spacer().frame(height: 20)
                     
                     // Categorized Operations
-                    VStack(spacing: 20) {
+                    LazyVStack(spacing: 20, pinnedViews: [.sectionHeaders]) {
                         ForEach(bank.categories) { category in
-                            VStack(alignment: .leading, spacing: 12) {
+                            Section(header: 
                                 Text(category.name.uppercased())
-                                    .font(.system(size: 14, weight: .medium))
+                                    .font(.system(size: 14, weight: .bold))
                                     .foregroundColor(.gray)
-                                    .padding(.horizontal, 4)
-                                
-                                ForEach(category.operations) { operation in
-                                    OperationCard(operation: operation, themeColor: bank.themeColor, textColor: bank.textColor) {
-                                        // Execute USSD trigger
-                                        CallService.shared.executeUSSD(code: operation.ussdCode)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.vertical, 8)
+                                    .padding(.horizontal)
+                                    .background(Color(UIColor.systemGroupedBackground))
+                            ) {
+                                VStack(spacing: 12) {
+                                    ForEach(category.operations) { operation in
+                                        OperationCard(operation: operation, themeColor: bank.themeColor, textColor: bank.textColor) {
+                                            // Execute USSD trigger
+                                            CallService.shared.executeUSSD(code: operation.ussdCode)
+                                        }
                                     }
                                 }
+                                .padding(.horizontal)
                             }
                         }
                     }
-                    .padding()
                 }
             }
             .background(Color(UIColor.systemGroupedBackground))

@@ -251,22 +251,34 @@ class UserDataManager: ObservableObject {
     }
     
     private func save() {
-        // Local save
-        if let encoded = try? JSONEncoder().encode(nautaAccounts) { UserDefaults.standard.set(encoded, forKey: "nautaAccounts") }
-        if let encoded = try? JSONEncoder().encode(bankAccounts) { UserDefaults.standard.set(encoded, forKey: "bankAccounts") }
-        if let encoded = try? JSONEncoder().encode(bills) { UserDefaults.standard.set(encoded, forKey: "bills") }
-        if let encoded = try? JSONEncoder().encode(userKeys) { UserDefaults.standard.set(encoded, forKey: "userKeys") }
+        let nauta = self.nautaAccounts
+        let banks = self.bankAccounts
+        let bills = self.bills
+        let keys = self.userKeys
+        let syncEnabled = self.iCloudSyncEnabled
+        let password = self.iCloudEncryptionPassword
         
-        // iCloud save
-        if iCloudSyncEnabled {
-            let store = NSUbiquitousKeyValueStore.default
+        // Execute heavy encoding and encryption in a background thread to keep UI smooth
+        DispatchQueue.global(qos: .background).async {
+            let encoder = JSONEncoder()
             
-            if let encoded = try? JSONEncoder().encode(nautaAccounts), let encrypted = encryptData(encoded) { store.set(encrypted, forKey: "nautaAccounts") }
-            if let encoded = try? JSONEncoder().encode(bankAccounts), let encrypted = encryptData(encoded) { store.set(encrypted, forKey: "bankAccounts") }
-            if let encoded = try? JSONEncoder().encode(bills), let encrypted = encryptData(encoded) { store.set(encrypted, forKey: "bills") }
-            if let encoded = try? JSONEncoder().encode(userKeys), let encrypted = encryptData(encoded) { store.set(encrypted, forKey: "userKeys") }
+            // Local save (UserDefaults is thread-safe)
+            if let encoded = try? encoder.encode(nauta) { UserDefaults.standard.set(encoded, forKey: "nautaAccounts") }
+            if let encoded = try? encoder.encode(banks) { UserDefaults.standard.set(encoded, forKey: "bankAccounts") }
+            if let encoded = try? encoder.encode(bills) { UserDefaults.standard.set(encoded, forKey: "bills") }
+            if let encoded = try? encoder.encode(keys) { UserDefaults.standard.set(encoded, forKey: "userKeys") }
             
-            store.synchronize()
+            // iCloud save
+            if syncEnabled {
+                let store = NSUbiquitousKeyValueStore.default
+                
+                if let encoded = try? encoder.encode(nauta), let encrypted = self.encryptData(encoded, with: password) { store.set(encrypted, forKey: "nautaAccounts") }
+                if let encoded = try? encoder.encode(banks), let encrypted = self.encryptData(encoded, with: password) { store.set(encrypted, forKey: "bankAccounts") }
+                if let encoded = try? encoder.encode(bills), let encrypted = self.encryptData(encoded, with: password) { store.set(encrypted, forKey: "bills") }
+                if let encoded = try? encoder.encode(keys), let encrypted = self.encryptData(encoded, with: password) { store.set(encrypted, forKey: "userKeys") }
+                
+                store.synchronize()
+            }
         }
     }
     
@@ -285,41 +297,39 @@ class UserDataManager: ObservableObject {
     
     private func loadFromICloud() {
         let store = NSUbiquitousKeyValueStore.default
+        let password = self.iCloudEncryptionPassword
         
-        if let data = store.data(forKey: "nautaAccounts"), let decrypted = decryptData(data), let decoded = try? JSONDecoder().decode([NautaAccount].self, from: decrypted) { nautaAccounts = decoded }
-        if let data = store.data(forKey: "bankAccounts"), let decrypted = decryptData(data), let decoded = try? JSONDecoder().decode([BankAccount].self, from: decrypted) { bankAccounts = decoded }
-        if let data = store.data(forKey: "bills"), let decrypted = decryptData(data), let decoded = try? JSONDecoder().decode([Bill].self, from: decrypted) { bills = decoded }
-        if let data = store.data(forKey: "userKeys"), let decrypted = decryptData(data), let decoded = try? JSONDecoder().decode([UserKey].self, from: decrypted) { userKeys = decoded }
+        if let data = store.data(forKey: "nautaAccounts"), let decrypted = decryptData(data, with: password), let decoded = try? JSONDecoder().decode([NautaAccount].self, from: decrypted) { nautaAccounts = decoded }
+        if let data = store.data(forKey: "bankAccounts"), let decrypted = decryptData(data, with: password), let decoded = try? JSONDecoder().decode([BankAccount].self, from: decrypted) { bankAccounts = decoded }
+        if let data = store.data(forKey: "bills"), let decrypted = decryptData(data, with: password), let decoded = try? JSONDecoder().decode([Bill].self, from: decrypted) { bills = decoded }
+        if let data = store.data(forKey: "userKeys"), let decrypted = decryptData(data, with: password), let decoded = try? JSONDecoder().decode([UserKey].self, from: decrypted) { userKeys = decoded }
     }
     
     // MARK: - Encryption Helpers
-    private func encryptData(_ data: Data) -> Data? {
-        guard !iCloudEncryptionPassword.isEmpty else { return data }
-        let key = SHA256.hash(data: Data(iCloudEncryptionPassword.utf8))
+    private func encryptData(_ data: Data, with password: String) -> Data? {
+        guard !password.isEmpty else { return data }
+        let key = SHA256.hash(data: Data(password.utf8))
         let symmetricKey = SymmetricKey(data: key)
         do {
             let sealedBox = try AES.GCM.seal(data, using: symmetricKey)
             return sealedBox.combined
         } catch {
-            print("Encryption error: \(error)")
+            print("Encryption Error: \(error)")
             return nil
         }
     }
     
-    private func decryptData(_ data: Data) -> Data? {
-        guard !iCloudEncryptionPassword.isEmpty else { 
-            // If no password, we assume it's unencrypted or we can't decrypt it
-            return data 
-        }
-        let key = SHA256.hash(data: Data(iCloudEncryptionPassword.utf8))
+    private func decryptData(_ data: Data, with password: String) -> Data? {
+        guard !password.isEmpty else { return data }
+        let key = SHA256.hash(data: Data(password.utf8))
         let symmetricKey = SymmetricKey(data: key)
         do {
             let sealedBox = try AES.GCM.SealedBox(combined: data)
-            return try AES.GCM.open(sealedBox, using: symmetricKey)
+            let decryptedData = try AES.GCM.open(sealedBox, using: symmetricKey)
+            return decryptedData
         } catch {
-            print("Decryption error: \(error)")
-            // If decryption fails, maybe the data is not encrypted (legacy)
-            return data 
+            print("Decryption Error: \(error)")
+            return nil
         }
     }
 }
