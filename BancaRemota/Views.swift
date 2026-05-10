@@ -244,7 +244,7 @@ struct BankSelectionView: View {
                         if !favoritesManager.favoriteOperations.isEmpty {
                             LazyVStack(spacing: 12) {
                                 ForEach(favoritesManager.favoriteOperations) { fav in
-                                    if let bank = banks.first(where: { $0.id == fav.bankId }) {
+                                    if banks.contains(where: { $0.id == fav.bankId }) {
                                         let theme = Color.appPrimary
                                         let textColor = Color.white
                                         OperationCard(operation: fav.operation, themeColor: theme, textColor: textColor) {
