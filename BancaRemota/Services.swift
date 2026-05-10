@@ -1,7 +1,8 @@
 import CryptoKit
 import SwiftUI
 
-let AppVersion = "2.2.2"
+let AppVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+let AppBuild = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
 
 // MARK: - Data Management Service
 class DataService {

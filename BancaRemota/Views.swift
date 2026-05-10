@@ -543,7 +543,7 @@ struct HelpView: View {
 
                     Spacer(minLength: 20)
 
-                    Text("Versión \(AppVersion)")
+                    Text("Versión \(AppVersion) (\(AppBuild))")
                         .font(.caption)
                         .foregroundColor(.gray)
                         .frame(maxWidth: .infinity)
@@ -657,6 +657,11 @@ struct TutorialView: View {
                     HelpSection(title: "Sincronización y Cifrado", content: "Activa 'Sincronización con iCloud' en Configuración para mantener tus datos sincronizados entre todos tus dispositivos Apple. Deberás configurar una contraseña de cifrado: tus datos se cifran localmente antes de subirse a la nube, garantizando que solo tú puedas acceder a ellos.")
 
                     Spacer()
+
+                    Text("Versión \(AppVersion) (\(AppBuild))")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                        .frame(maxWidth: .infinity)
                 }
                 .padding(25)
             }
@@ -832,6 +837,11 @@ struct ConfigView: View {
                     }
                     .disabled(isResetting)
                 }
+
+                Section(footer: Text("Versión \(AppVersion) (\(AppBuild))")
+                    .frame(maxWidth: .infinity)
+                    .multilineTextAlignment(.center)
+                ) {}
             }
             .alert(isPresented: $showingResetAlert) {
                 Alert(
@@ -1005,7 +1015,7 @@ struct ConfigView: View {
             }
         }
     }
-    
+
     private func resetFavorites() {
         isResetting = true
         
