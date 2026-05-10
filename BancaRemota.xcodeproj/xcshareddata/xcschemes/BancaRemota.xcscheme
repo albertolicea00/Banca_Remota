@@ -45,11 +45,20 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "DBB06169ED39C3CFD7CB3807"
+            BuildableName = "BancaRemota.app"
+            BlueprintName = "BancaRemota"
+            ReferencedContainer = "container:BancaRemota.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "DBB06169ED39C3CFD7CB3807"
             BuildableName = "Banca Remota.app"
             BlueprintName = "Banca Remota"
             ReferencedContainer = "container:Banca_Remota.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -62,9 +71,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "DBB06169ED39C3CFD7CB3807"
-            BuildableName = "Banca Remota.app"
-            BlueprintName = "Banca Remota"
-            ReferencedContainer = "container:Banca_Remota.xcodeproj">
+            BuildableName = "BancaRemota.app"
+            BlueprintName = "BancaRemota"
+            ReferencedContainer = "container:BancaRemota.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
