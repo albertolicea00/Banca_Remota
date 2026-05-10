@@ -463,7 +463,7 @@ struct HelpView: View {
                             }
                             .foregroundColor(.blue)
 
-                            Link(destination: URL(string: "https://github.com/albertolicea00/Banca_Remota")!) {
+                            Link(destination: URL(string: "https://github.com/albertolicea00/BancaRemota")!) {
                                 Label("Código Fuente en GitHub", systemImage: "terminal")
                             }
                             .foregroundColor(.blue)

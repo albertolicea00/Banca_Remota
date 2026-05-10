@@ -58,7 +58,7 @@ Local PIN and password manager by category. **Only accessible when biometric aut
 ## Installation
 
 1. Clone the repository.
-2. Open `Banca_Remota.xcodeproj` in Xcode.
+2. Open `BancaRemota.xcodeproj` in Xcode.
 3. Configure your developer account in _Signing & Capabilities_.
 4. Build and run on a physical device with **Cmd+R**.
 
