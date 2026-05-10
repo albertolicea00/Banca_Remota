@@ -296,7 +296,7 @@
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = BancaRemota;
+				INFOPLIST_KEY_CFBundleDisplayName = "Banca Remota";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "Tu rostro es necesario para desbloquear BancaRemota.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -326,7 +326,7 @@
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = BancaRemota;
+				INFOPLIST_KEY_CFBundleDisplayName = "Banca Remota";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "Tu rostro es necesario para desbloquear BancaRemota.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
