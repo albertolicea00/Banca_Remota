@@ -10,11 +10,13 @@ struct TopNavBar: View {
     var isHome: Bool = false
     
     @AppStorage("useBankNameInsteadOfIcon") private var useBankNameInsteadOfIcon = false
+    @AppStorage("showNetworkStatus") private var showNetworkStatus = false
     
     var body: some View {
         let contentColor = bank?.textColor ?? .primary
         
-        HStack {
+        VStack(spacing: 0) {
+            HStack {
             if showMenuBtn {
                 Button(action: onMenuTap) {
                     Image(systemName: "line.horizontal.3")
@@ -73,6 +75,43 @@ struct TopNavBar: View {
         .padding(.top, 10)
         .padding(.bottom, 10)
         .background(themeColor)
+        
+        if showNetworkStatus {
+            ConnectionBannerView()
+        }
+        }
+    }
+}
+
+// MARK: - Connection Banner View
+struct ConnectionBannerView: View {
+    @StateObject private var cellularMonitor = CellularMonitor.shared
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            // Signal Bars Icon
+            HStack(alignment: .bottom, spacing: 2) {
+                RoundedRectangle(cornerRadius: 1)
+                    .fill(cellularMonitor.signalQuality >= 1 ? Color.primary : Color.gray.opacity(0.3))
+                    .frame(width: 3, height: 6)
+                RoundedRectangle(cornerRadius: 1)
+                    .fill(cellularMonitor.signalQuality >= 2 ? Color.primary : Color.gray.opacity(0.3))
+                    .frame(width: 3, height: 9)
+                RoundedRectangle(cornerRadius: 1)
+                    .fill(cellularMonitor.signalQuality >= 3 ? Color.primary : Color.gray.opacity(0.3))
+                    .frame(width: 3, height: 12)
+            }
+            .padding(.trailing, 2)
+            
+            Text(cellularMonitor.hasService ? "Red Celular (\(cellularMonitor.networkType))" : "Sin Servicio Celular")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(cellularMonitor.hasService ? (cellularMonitor.signalQuality <= 1 ? .orange : .primary) : .red)
+            
+            Spacer()
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 6)
+        .background(Color(UIColor.secondarySystemBackground))
     }
 }
 

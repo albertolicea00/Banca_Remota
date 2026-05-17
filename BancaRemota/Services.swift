@@ -1,5 +1,7 @@
 import CryptoKit
 import SwiftUI
+import Network
+import CoreTelephony
 
 let AppVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
 let AppBuild = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
@@ -115,6 +117,55 @@ class AuthManager: ObservableObject {
             }
         } else {
             self.isAuthenticated = true
+        }
+    }
+}
+
+// MARK: - Cellular Signal Monitor
+class CellularMonitor: ObservableObject {
+    static let shared = CellularMonitor()
+    let telephonyInfo = CTTelephonyNetworkInfo()
+    
+    @Published var hasService: Bool = false
+    @Published var networkType: String = "Buscando..."
+    @Published var signalQuality: Int = 0 // 0 to 3
+    
+    private init() {
+        updateCellularStatus()
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(updateCellularStatus), name: .CTServiceRadioAccessTechnologyDidChange, object: nil)
+    }
+    
+    @objc private func updateCellularStatus() {
+        DispatchQueue.main.async {
+            // Verificar si hay alguna tecnología de radio celular activa
+            guard let techDict = self.telephonyInfo.serviceCurrentRadioAccessTechnology,
+                  let tech = techDict.values.first, !tech.isEmpty else {
+                self.hasService = false
+                self.networkType = "Sin Servicio Celular"
+                self.signalQuality = 0
+                return
+            }
+            
+            self.hasService = true
+            
+            switch tech {
+            case CTRadioAccessTechnologyNR, CTRadioAccessTechnologyNRNSA:
+                self.networkType = "5G"
+                self.signalQuality = 3
+            case CTRadioAccessTechnologyLTE:
+                self.networkType = "4G / LTE"
+                self.signalQuality = 3
+            case CTRadioAccessTechnologyWCDMA, CTRadioAccessTechnologyHSDPA, CTRadioAccessTechnologyHSUPA, CTRadioAccessTechnologyCDMA1x, CTRadioAccessTechnologyCDMAEVDORev0, CTRadioAccessTechnologyCDMAEVDORevA, CTRadioAccessTechnologyCDMAEVDORevB, CTRadioAccessTechnologyeHRPD:
+                self.networkType = "3G"
+                self.signalQuality = 2
+            case CTRadioAccessTechnologyEdge, CTRadioAccessTechnologyGPRS:
+                self.networkType = "2G / EDGE"
+                self.signalQuality = 1
+            default:
+                self.networkType = "Red Celular"
+                self.signalQuality = 2
+            }
         }
     }
 }
