@@ -34,10 +34,10 @@ struct BancaRemotaApp: App {
                         }) {
                             Text("Desbloquear")
                                 .font(.headline)
-                                .foregroundColor(.white)
+                                .foregroundColor(.appPrimary)
                                 .padding()
                                 .frame(width: 200)
-                                .background(Color.appPrimary)
+                                .background(Color.appPrimary.opacity(0.15))
                                 .cornerRadius(12)
                         }
                     }
