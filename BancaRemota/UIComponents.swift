@@ -87,31 +87,54 @@ struct TopNavBar: View {
 struct ConnectionBannerView: View {
     @StateObject private var cellularMonitor = CellularMonitor.shared
     
+    var statusText: String {
+        if !cellularMonitor.hasService {
+            return "Sin Señal (USSD no funcionará)"
+        }
+        switch cellularMonitor.signalQuality {
+        case 3:
+            return "Señal Óptima (\(cellularMonitor.networkType))"
+        case 2:
+            return "Señal Buena (\(cellularMonitor.networkType))"
+        case 1:
+            return "Señal Débil (Riesgo de fallo)"
+        default:
+            return "Buscando Red..."
+        }
+    }
+    
+    var statusColor: Color {
+        if !cellularMonitor.hasService { return .red }
+        switch cellularMonitor.signalQuality {
+        case 3: return .green
+        case 2: return .appPrimary
+        case 1: return .orange
+        default: return .gray
+        }
+    }
+    
+    var statusIcon: String {
+        if !cellularMonitor.hasService { return "antenna.radiowaves.left.and.right.slash" }
+        switch cellularMonitor.signalQuality {
+        case 3: return "antenna.radiowaves.left.and.right"
+        case 2: return "antenna.radiowaves.left.and.right"
+        case 1: return "exclamationmark.triangle.fill"
+        default: return "antenna.radiowaves.left.and.right"
+        }
+    }
+    
     var body: some View {
         HStack(spacing: 8) {
-            // Signal Bars Icon
-            HStack(alignment: .bottom, spacing: 2) {
-                RoundedRectangle(cornerRadius: 1)
-                    .fill(cellularMonitor.signalQuality >= 1 ? Color.primary : Color.gray.opacity(0.3))
-                    .frame(width: 3, height: 6)
-                RoundedRectangle(cornerRadius: 1)
-                    .fill(cellularMonitor.signalQuality >= 2 ? Color.primary : Color.gray.opacity(0.3))
-                    .frame(width: 3, height: 9)
-                RoundedRectangle(cornerRadius: 1)
-                    .fill(cellularMonitor.signalQuality >= 3 ? Color.primary : Color.gray.opacity(0.3))
-                    .frame(width: 3, height: 12)
-            }
-            .padding(.trailing, 2)
+            Image(systemName: statusIcon)
+                .font(.system(size: 14, weight: .bold))
             
-            Text(cellularMonitor.hasService ? "Red Celular (\(cellularMonitor.networkType))" : "Sin Servicio Celular")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(cellularMonitor.hasService ? (cellularMonitor.signalQuality <= 1 ? .orange : .primary) : .red)
-            
-            Spacer()
+            Text(statusText)
+                .font(.system(size: 13, weight: .bold))
         }
-        .padding(.horizontal)
-        .padding(.vertical, 6)
-        .background(Color(UIColor.secondarySystemBackground))
+        .foregroundColor(statusColor)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
+        .background(statusColor.opacity(0.15))
     }
 }
 
