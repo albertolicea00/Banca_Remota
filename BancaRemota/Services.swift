@@ -38,13 +38,36 @@ class AuthManager: ObservableObject {
     
     @AppStorage("authEnabled") private var authEnabled: Bool = false
     @AppStorage("authExpiration") private var authExpiration: Double = 1.0
-    @AppStorage("lastAuthTime") private var lastAuthTime: Double = 0
+    // Use lastLeaveTime to measure how long the app was closed or in the background
+    @AppStorage("lastLeaveTime") private var lastLeaveTime: Double = 0
     
     @Published var isAuthenticated: Bool = false
     @Published var isAuthenticating: Bool = false
     
+    private var wasInBackground: Bool = true
+    
     private init() {
         checkExpiration()
+    }
+    
+    func handleScenePhase(_ phase: ScenePhase) {
+        switch phase {
+        case .active:
+            if wasInBackground {
+                checkExpiration()
+                if !isAuthenticated && !isAuthenticating {
+                    authenticate()
+                }
+                wasInBackground = false
+            }
+        case .background:
+            wasInBackground = true
+            lastLeaveTime = Date().timeIntervalSince1970
+        case .inactive:
+            break
+        @unknown default:
+            break
+        }
     }
     
     func checkExpiration() {
@@ -53,10 +76,15 @@ class AuthManager: ObservableObject {
             return
         }
         
+        if lastLeaveTime == 0 {
+            isAuthenticated = false
+            return
+        }
+        
         let now = Date().timeIntervalSince1970
         let expirationSeconds = authExpiration * 60.0
         
-        if (now - lastAuthTime) > expirationSeconds {
+        if (now - lastLeaveTime) >= expirationSeconds {
             isAuthenticated = false
         } else {
             isAuthenticated = true
@@ -82,7 +110,6 @@ class AuthManager: ObservableObject {
                     self.isAuthenticating = false
                     if success {
                         self.isAuthenticated = true
-                        self.lastAuthTime = Date().timeIntervalSince1970
                     }
                 }
             }

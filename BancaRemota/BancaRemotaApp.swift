@@ -46,12 +46,7 @@ struct BancaRemotaApp: App {
             }
         }
         .onChange(of: scenePhase) { newPhase in
-            if newPhase == .active {
-                authManager.checkExpiration()
-                if !authManager.isAuthenticated && !authManager.isAuthenticating {
-                    authManager.authenticate()
-                }
-            }
+            authManager.handleScenePhase(newPhase)
         }
     }
 }
